@@ -112,19 +112,28 @@ def truncate(text: str, max_length: int = 80) -> str:
     return text[: max_length - 3] + "..."
 
 
+def _quote_identifier(name: str, provider: str = "sqlserver") -> str:
+    """Quote an identifier for the given database provider."""
+    if provider == "postgresql":
+        return f'"{name}"'
+    return f"[{name}]"
+
+
 def build_create_index_sql(
     table_name: str,
     columns: list[str],
     include_columns: list[str] | None = None,
     index_name: str | None = None,
+    provider: str = "sqlserver",
 ) -> str:
     """Generate a CREATE INDEX SQL statement.
 
     Args:
         table_name: Target table name.
         columns: Key columns for the index.
-        include_columns: Included columns (SQL Server INCLUDE clause).
+        include_columns: Included columns (INCLUDE clause).
         index_name: Optional custom index name.
+        provider: Database provider ('sqlserver' or 'postgresql').
 
     Returns:
         CREATE INDEX statement string.
@@ -133,8 +142,9 @@ def build_create_index_sql(
         col_suffix = "_".join(columns)[:40]
         index_name = f"IX_{table_name}_{col_suffix}"
 
+    q = _quote_identifier
     col_list = ", ".join(columns)
-    sql = f"CREATE INDEX [{index_name}] ON [{table_name}] ({col_list})"
+    sql = f"CREATE INDEX {q(index_name, provider)} ON {q(table_name, provider)} ({col_list})"
 
     if include_columns:
         inc_list = ", ".join(include_columns)
@@ -143,6 +153,9 @@ def build_create_index_sql(
     return sql + ";"
 
 
-def build_drop_index_sql(table_name: str, index_name: str) -> str:
+def build_drop_index_sql(table_name: str, index_name: str, provider: str = "sqlserver") -> str:
     """Generate a DROP INDEX SQL statement."""
-    return f"DROP INDEX [{index_name}] ON [{table_name}];"
+    q = _quote_identifier
+    if provider == "postgresql":
+        return f"DROP INDEX {q(index_name, provider)};"
+    return f"DROP INDEX {q(index_name, provider)} ON {q(table_name, provider)};"

@@ -25,23 +25,34 @@ class PostgreSQLConnector(BaseConnector):
         import psycopg2
         import psycopg2.extras
 
-        if self.config.connection_string:
-            logger.info("Connecting to PostgreSQL via connection string")
-            self._connection = psycopg2.connect(self.config.connection_string)
-        else:
-            logger.info("Connecting to PostgreSQL: %s", self.config.get_masked_connection_info())
-            kwargs: dict[str, Any] = {
-                "host": self.config.server,
-                "port": self.config.port,
-                "dbname": self.config.database,
-                "user": self.config.username,
-                "password": self.config.password,
-            }
-            if self.config.ssl:
-                kwargs["sslmode"] = "require"
-            self._connection = psycopg2.connect(**kwargs)
+        try:
+            if self.config.connection_string:
+                logger.info("Connecting to PostgreSQL via connection string")
+                self._connection = psycopg2.connect(
+                    self.config.connection_string, connect_timeout=30
+                )
+            else:
+                logger.info(
+                    "Connecting to PostgreSQL: %s",
+                    self.config.get_masked_connection_info(),
+                )
+                kwargs: dict[str, Any] = {
+                    "host": self.config.server,
+                    "port": self.config.port,
+                    "dbname": self.config.database,
+                    "user": self.config.username,
+                    "password": self.config.password,
+                    "connect_timeout": 30,
+                }
+                if self.config.ssl:
+                    kwargs["sslmode"] = "require"
+                self._connection = psycopg2.connect(**kwargs)
 
-        self._connection.set_session(readonly=True, autocommit=True)
+            self._connection.set_session(readonly=True, autocommit=True)
+        except psycopg2.Error as exc:
+            raise ConnectionError(
+                f"Failed to connect to PostgreSQL ({self.config.server}): {exc}"
+            ) from exc
         logger.info("Connected successfully")
 
     def disconnect(self) -> None:

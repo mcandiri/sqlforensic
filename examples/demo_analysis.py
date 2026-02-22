@@ -11,7 +11,9 @@ to run. Replace the placeholder connection values with your own credentials
 before executing.
 """
 
-from sqlforensic import DatabaseForensic, AnalysisReport, ImpactResult
+from dataclasses import asdict
+
+from sqlforensic import AnalysisReport, DatabaseForensic, ImpactResult
 
 # ---------------------------------------------------------------------------
 # 1. Create a DatabaseForensic instance
@@ -80,9 +82,11 @@ print(f"Schema Overview: {report.schema_overview}")
 # Tables discovered
 print(f"\nTotal tables: {len(report.tables)}")
 for table in report.tables[:5]:
-    print(f"  - {table.get('TABLE_SCHEMA', '')}.{table.get('TABLE_NAME', '')}"
-          f"  ({table.get('column_count', 0)} columns, "
-          f"{table.get('row_count', 0)} rows)")
+    print(
+        f"  - {table.get('TABLE_SCHEMA', '')}.{table.get('TABLE_NAME', '')}"
+        f"  ({table.get('column_count', 0)} columns, "
+        f"{table.get('row_count', 0)} rows)"
+    )
 
 # Stored procedures
 print(f"\nStored procedures: {len(report.stored_procedures)}")
@@ -98,9 +102,11 @@ for sp in report.dead_procedures:
 # Missing indexes -- these are indexes the database engine recommends adding
 print(f"\nMissing indexes: {len(report.missing_indexes)}")
 for idx in report.missing_indexes[:5]:
-    print(f"  - Table: {idx.get('table_name', '')}, "
-          f"Columns: {idx.get('equality_columns', '')}, "
-          f"Impact: {idx.get('improvement_measure', 0):.0f}")
+    print(
+        f"  - Table: {idx.get('table_name', '')}, "
+        f"Columns: {idx.get('equality_columns', '')}, "
+        f"Impact: {idx.get('improvement_measure', 0):.0f}"
+    )
 
 # Unused indexes -- these exist but are never read, only costing write overhead
 print(f"\nUnused indexes: {len(report.unused_indexes)}")
@@ -127,8 +133,10 @@ print(f"Security issues: {len(report.security_issues)}")
 # Issues summary with severity levels
 print(f"\nIssues found: {len(report.issues)}")
 for issue in report.issues:
-    print(f"  [{issue.get('severity', 'INFO')}] {issue.get('description', '')}"
-          f" (count: {issue.get('count', 0)})")
+    print(
+        f"  [{issue.get('severity', 'INFO')}] {issue.get('description', '')}"
+        f" (count: {issue.get('count', 0)})"
+    )
 
 # Risk scores
 print(f"\nRisk scores: {report.risk_scores}")
@@ -217,13 +225,13 @@ print("Dependency graph saved to dependency_graph.html")
 # The AnalysisReport is a standard Python dataclass, so you can convert it
 # to a dictionary or integrate it into your own tooling.
 
-from dataclasses import asdict
-
 report_dict = asdict(report)
 print(f"\nReport dict keys: {list(report_dict.keys())}")
 
 # Example: flag a CI build if health score is below threshold
 HEALTH_THRESHOLD = 60
 if report.health_score < HEALTH_THRESHOLD:
-    print(f"\nWARNING: Health score {report.health_score} is below "
-          f"threshold {HEALTH_THRESHOLD}. Review the issues above.")
+    print(
+        f"\nWARNING: Health score {report.health_score} is below "
+        f"threshold {HEALTH_THRESHOLD}. Review the issues above."
+    )

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 __version__ = "1.0.0"
 
+import logging
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -16,6 +17,8 @@ from sqlforensic.config import AnalysisConfig, ConnectionConfig
 from sqlforensic.connectors.base import BaseConnector
 from sqlforensic.connectors.postgresql import PostgreSQLConnector
 from sqlforensic.connectors.sqlserver import SQLServerConnector
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -117,7 +120,12 @@ class DatabaseForensic:
         return self._connector
 
     def analyze(self) -> AnalysisReport:
-        """Run full database analysis and return comprehensive report."""
+        """Run full database analysis and return comprehensive report.
+
+        Raises:
+            ConnectionError: If the database connection fails.
+            RuntimeError: If a critical analyzer fails.
+        """
         from sqlforensic.analyzers.dead_code_analyzer import DeadCodeAnalyzer
         from sqlforensic.analyzers.dependency_analyzer import DependencyAnalyzer
         from sqlforensic.analyzers.index_analyzer import IndexAnalyzer
@@ -138,6 +146,7 @@ class DatabaseForensic:
                 provider=self.connection_config.provider,
             )
 
+            # Schema analysis is critical — failure here is unrecoverable
             schema = SchemaAnalyzer(connector)
             schema_result = schema.analyze()
             report.tables = schema_result.get("tables", [])
@@ -177,11 +186,18 @@ class DatabaseForensic:
             report.dependencies = dep_result.get("graph", {})
             report.circular_dependencies = dep_result.get("circular", [])
 
-            size = SizeAnalyzer(connector)
-            report.size_info = size.analyze()
+            # Non-critical analyzers: log errors but continue
+            try:
+                size = SizeAnalyzer(connector)
+                report.size_info = size.analyze()
+            except Exception:
+                logger.warning("Size analysis failed, skipping", exc_info=True)
 
-            sec = SecurityAnalyzer(connector)
-            report.security_issues = sec.analyze()
+            try:
+                sec = SecurityAnalyzer(connector)
+                report.security_issues = sec.analyze()
+            except Exception:
+                logger.warning("Security analysis failed, skipping", exc_info=True)
 
             scorer = HealthScoreCalculator(report)
             report.health_score = scorer.calculate()

@@ -25,7 +25,7 @@ console = Console()
 
 def _build_config(ctx: click.Context) -> ConnectionConfig:
     """Build ConnectionConfig from Click context parameters."""
-    params = ctx.ensure_object(dict)
+    params: dict[str, Any] = ctx.ensure_object(dict)
     provider = params.get("provider", "sqlserver")
     return ConnectionConfig(
         provider=provider,
@@ -41,7 +41,11 @@ def _build_config(ctx: click.Context) -> ConnectionConfig:
 
 
 def _build_forensic(ctx: click.Context) -> DatabaseForensic:
-    """Build DatabaseForensic instance from Click context."""
+    """Build DatabaseForensic instance from Click context.
+
+    Validates connection configuration and exits with error message
+    if validation fails.
+    """
     config = _build_config(ctx)
     errors = config.validate()
     if errors:

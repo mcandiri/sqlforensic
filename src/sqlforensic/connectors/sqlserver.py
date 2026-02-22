@@ -49,7 +49,12 @@ class SQLServerConnector(BaseConnector):
 
         conn_str = self._build_connection_string()
         logger.info("Connecting to SQL Server: %s", self.config.get_masked_connection_info())
-        self._connection = pyodbc.connect(conn_str, readonly=True)
+        try:
+            self._connection = pyodbc.connect(conn_str, readonly=True, timeout=30)
+        except pyodbc.Error as exc:
+            raise ConnectionError(
+                f"Failed to connect to SQL Server ({self.config.server}): {exc}"
+            ) from exc
         logger.info("Connected successfully")
 
     def disconnect(self) -> None:

@@ -3,9 +3,11 @@
 > Reverse-engineer any database in minutes. Schema analysis, dead code detection,
 > dependency graphs, and actionable recommendations — all from one command.
 
+[![CI](https://github.com/mcandiri/sqlforensic/actions/workflows/ci.yml/badge.svg)](https://github.com/mcandiri/sqlforensic/actions)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
-![Tests](https://img.shields.io/badge/tests-170%2B%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-245%20passing-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-78%25-green)
 ![Type Checked](https://img.shields.io/badge/mypy-strict-blue)
 
 ---
@@ -265,7 +267,7 @@ SQLForensic/
 │   ├── scoring/                  # Health score & risk scoring
 │   ├── reporters/                # Console, HTML, Markdown, JSON reporters
 │   └── utils/                    # SQL patterns & formatting helpers
-├── tests/                        # 170+ tests (all run without a database)
+├── tests/                        # 245 tests (all run without a database)
 ├── examples/sample_output/       # Pre-generated example reports
 ├── pyproject.toml                # Modern Python packaging
 └── Makefile
