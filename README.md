@@ -239,7 +239,7 @@ forensic.export_dependency_graph("graph.html")
 
 ```bash
 # Clone and install
-git clone https://github.com/mehmetcandiri/sqlforensic.git
+git clone https://github.com/mcandiri/sqlforensic.git
 cd sqlforensic
 make install-dev
 

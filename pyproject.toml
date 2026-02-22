@@ -51,9 +51,9 @@ dev = [
 sqlforensic = "sqlforensic.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/mehmetcandiri/sqlforensic"
-Repository = "https://github.com/mehmetcandiri/sqlforensic"
-Issues = "https://github.com/mehmetcandiri/sqlforensic/issues"
+Homepage = "https://github.com/mcandiri/sqlforensic"
+Repository = "https://github.com/mcandiri/sqlforensic"
+Issues = "https://github.com/mcandiri/sqlforensic/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
