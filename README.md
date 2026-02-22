@@ -5,7 +5,7 @@
 
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
-![Tests](https://img.shields.io/badge/tests-67%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-170%2B%20passing-brightgreen)
 ![Type Checked](https://img.shields.io/badge/mypy-strict-blue)
 
 ---
@@ -265,7 +265,7 @@ SQLForensic/
 │   ├── scoring/                  # Health score & risk scoring
 │   ├── reporters/                # Console, HTML, Markdown, JSON reporters
 │   └── utils/                    # SQL patterns & formatting helpers
-├── tests/                        # 67 tests (all run without a database)
+├── tests/                        # 170+ tests (all run without a database)
 ├── examples/sample_output/       # Pre-generated example reports
 ├── pyproject.toml                # Modern Python packaging
 └── Makefile
