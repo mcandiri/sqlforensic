@@ -1,13 +1,13 @@
 # SQLForensic
 
 > Reverse-engineer any database in minutes. Schema analysis, dead code detection,
-> dependency graphs, and actionable recommendations — all from one command.
+> dependency graphs, schema diff with migration scripts, and actionable recommendations — all from one command.
 
 [![CI](https://github.com/mcandiri/sqlforensic/actions/workflows/ci.yml/badge.svg)](https://github.com/mcandiri/sqlforensic/actions)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
-![Tests](https://img.shields.io/badge/tests-245%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-78%25-green)
+![Tests](https://img.shields.io/badge/tests-289%20passing-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-73%25-green)
 ![Type Checked](https://img.shields.io/badge/mypy-strict-blue)
 
 ---
@@ -38,6 +38,8 @@ Open the example reports in `examples/sample_output/` to see what SQLForensic pr
 - **[dependency_graph.html](examples/sample_output/dependency_graph.html)** — Interactive D3.js force-directed dependency visualization
 - **[report.md](examples/sample_output/report.md)** — Markdown documentation
 - **[report.json](examples/sample_output/report.json)** — Machine-readable JSON export
+- **[diff_report.md](examples/sample_output/diff_report.md)** — Schema diff report between two databases
+- **[migration.sql](examples/sample_output/migration.sql)** — Safe-mode migration script with rollback
 
 ### Console Output Preview
 
@@ -120,6 +122,7 @@ sqlforensic deadcode -s "..." -d "..."        # Unused tables, SPs, orphan colum
 sqlforensic graph -s "..." -d "..." -o g.html # Interactive dependency graph
 sqlforensic impact -s "..." -d "..." -t "Students"  # Impact analysis
 sqlforensic health -s "..." -d "..."          # Health score
+sqlforensic diff --source-database "..." --target-database "..."  # Schema diff
 ```
 
 ### Schema Analysis
@@ -174,6 +177,30 @@ Weighted scoring based on:
 - High-complexity SPs (−2 each)
 - Bonus: Good FK coverage, consistent naming
 
+### Schema Diff & Migration
+
+Compare two database schemas and generate safe migration scripts:
+
+```bash
+sqlforensic diff \
+    --source-server "dev" --source-database "SchoolDB_Dev" \
+    --target-server "prod" --target-database "SchoolDB_Prod" \
+    --user "sa" --password "***" \
+    --output migration.sql --format sql --safe-mode
+```
+
+Every change gets a **risk score** based on dependency analysis:
+
+| Change | Risk | Why |
+|---|---|---|
+| Drop column `Students.LegacyCode` | CRITICAL | 2 SPs + 1 View reference it |
+| Alter `Students.Email` type | HIGH | Possible data truncation |
+| Add table `CourseCategories` | NONE | No dependencies |
+
+Output formats: `console`, `html`, `markdown`, `json`, `sql` (migration script only).
+
+Migration scripts include transaction safety, data validation, and manual review flags for risky changes.
+
 ## Python Library API
 
 ```python
@@ -213,6 +240,17 @@ forensic.export_html("report.html")
 forensic.export_markdown("report.md")
 forensic.export_json("report.json")
 forensic.export_dependency_graph("graph.html")
+
+# Schema diff
+target = DatabaseForensic(
+    provider="sqlserver",
+    server="prod-server",
+    database="SchoolDB_Prod",
+    username="sa",
+    password="your-password"
+)
+diff = forensic.diff(target)
+print(f"Changes: {diff.total_changes}, Risk: {diff.risk_level}")
 ```
 
 ## Supported Databases
@@ -262,13 +300,14 @@ SQLForensic/
 │   ├── cli.py                    # CLI entry point (Click)
 │   ├── config.py                 # Connection & analysis settings
 │   ├── connectors/               # Database connectors (SQL Server, PostgreSQL)
-│   ├── analyzers/                # 8 specialized analyzers
+│   ├── analyzers/                # 9 specialized analyzers (incl. diff)
+│   ├── diff/                     # Schema diff engine & migration generator
 │   ├── parsers/                  # SQL parser for SP analysis
 │   ├── scoring/                  # Health score & risk scoring
 │   ├── reporters/                # Console, HTML, Markdown, JSON reporters
 │   └── utils/                    # SQL patterns & formatting helpers
-├── tests/                        # 245 tests (all run without a database)
-├── examples/sample_output/       # Pre-generated example reports
+├── tests/                        # 289 tests (all run without a database)
+├── examples/sample_output/       # Pre-generated example reports & diff samples
 ├── pyproject.toml                # Modern Python packaging
 └── Makefile
 ```
@@ -277,7 +316,7 @@ SQLForensic/
 
 - [ ] MySQL / MariaDB support
 - [ ] Azure SQL Database support
-- [ ] Schema comparison between two databases
+- [x] Schema comparison between two databases
 - [ ] Automated documentation generation with AI summaries
 - [ ] VS Code extension
 - [ ] GitHub Action for CI/CD database health checks

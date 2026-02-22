@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from sqlforensic.connectors.base import BaseConnector
 
 import click
 from rich.console import Console
@@ -322,6 +325,156 @@ def health(ctx: click.Context, **kwargs: Any) -> None:
     _print_health_score(report)
 
 
+@main.command()
+@click.option(
+    "--provider",
+    "-p",
+    default="sqlserver",
+    type=click.Choice(["sqlserver", "postgresql"]),
+    help="Database provider",
+)
+@click.option(
+    "--server",
+    "-s",
+    default="localhost",
+    help="Server hostname (used for both if source/target not set)",
+)
+@click.option("--source-server", default=None, help="Source server hostname")
+@click.option("--source-database", required=True, help="Source database name (desired state)")
+@click.option("--target-server", default=None, help="Target server hostname")
+@click.option("--target-database", required=True, help="Target database name (current state)")
+@click.option("--user", "-u", default="", help="Username")
+@click.option("--password", "-P", default="", help="Password")
+@click.option("--port", type=int, default=None, help="Port number")
+@click.option("--connection-string", "-c", default="", help="Full connection string")
+@click.option("--trusted-connection", is_flag=True, help="Use Windows trusted connection")
+@click.option("--ssl", is_flag=True, help="Enable SSL/TLS")
+@click.option("--output", "-o", default=None, help="Output file path")
+@click.option(
+    "--format",
+    "-f",
+    "fmt",
+    default="console",
+    type=click.Choice(["console", "html", "markdown", "json", "sql"]),
+    help="Output format",
+)
+@click.option("--include-data", is_flag=True, help="Compare row counts")
+@click.option("--schema-only", is_flag=True, help="Skip SP/View/Function comparison")
+@click.option(
+    "--risk-threshold",
+    default=None,
+    type=click.Choice(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
+    help="Only show changes at or above this risk level",
+)
+@click.option(
+    "--safe-mode", is_flag=True, help="Generate migration with IF EXISTS checks and rollback"
+)
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
+def diff(**kwargs: Any) -> None:
+    """Compare two database schemas and generate migration scripts."""
+    _configure_logging(kwargs.get("verbose", False))
+
+    provider = kwargs["provider"]
+    default_port = 1433 if provider == "sqlserver" else 5432
+    port = kwargs.get("port") or default_port
+
+    # Build source config
+    source_server = kwargs.get("source_server") or kwargs.get("server", "localhost")
+    source_config = ConnectionConfig(
+        provider=provider,
+        server=source_server,
+        database=kwargs["source_database"],
+        username=kwargs.get("user", ""),
+        password=kwargs.get("password", ""),
+        port=port,
+        connection_string=kwargs.get("connection_string", ""),
+        trusted_connection=kwargs.get("trusted_connection", False),
+        ssl=kwargs.get("ssl", False),
+    )
+
+    # Build target config
+    target_server = kwargs.get("target_server") or kwargs.get("server", "localhost")
+    target_config = ConnectionConfig(
+        provider=provider,
+        server=target_server,
+        database=kwargs["target_database"],
+        username=kwargs.get("user", ""),
+        password=kwargs.get("password", ""),
+        port=port,
+        connection_string=kwargs.get("connection_string", ""),
+        trusted_connection=kwargs.get("trusted_connection", False),
+        ssl=kwargs.get("ssl", False),
+    )
+
+    # Validate
+    for cfg, label in [(source_config, "Source"), (target_config, "Target")]:
+        errors = cfg.validate()
+        if errors:
+            for err in errors:
+                console.print(f"[red]{label} error:[/red] {err}")
+            sys.exit(1)
+
+    # Build connectors
+    from sqlforensic.analyzers.diff_analyzer import DiffAnalyzer
+
+    source_conn: BaseConnector
+    target_conn: BaseConnector
+    if provider == "sqlserver":
+        from sqlforensic.connectors.sqlserver import SQLServerConnector
+
+        source_conn = SQLServerConnector(source_config)
+        target_conn = SQLServerConnector(target_config)
+    else:
+        from sqlforensic.connectors.postgresql import PostgreSQLConnector
+
+        source_conn = PostgreSQLConnector(source_config)
+        target_conn = PostgreSQLConnector(target_config)
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[bold blue]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Comparing schemas...", total=None)
+        analyzer = DiffAnalyzer(
+            source_conn,
+            target_conn,
+            include_data=kwargs.get("include_data", False),
+            schema_only=kwargs.get("schema_only", False),
+        )
+        diff_result = analyzer.analyze()
+        progress.update(task, description="Comparison complete!")
+
+    fmt = kwargs.get("fmt", "console")
+    output_path = kwargs.get("output")
+
+    if fmt == "console" or not output_path:
+        from sqlforensic.reporters.diff_console_reporter import DiffConsoleReporter
+
+        DiffConsoleReporter(diff_result, console).print_report()
+
+    if output_path:
+        if fmt == "html":
+            from sqlforensic.reporters.diff_html_reporter import DiffHTMLReporter
+
+            DiffHTMLReporter(diff_result).export(output_path)
+        elif fmt == "markdown":
+            _export_diff_markdown(diff_result, output_path)
+        elif fmt == "json":
+            _export_diff_json(diff_result, output_path)
+        elif fmt == "sql":
+            from sqlforensic.diff.migration_generator import MigrationGenerator
+
+            script = MigrationGenerator(
+                diff_result,
+                provider=provider,
+                safe_mode=kwargs.get("safe_mode", False),
+            ).generate()
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(script)
+        console.print(f"\n[green]Report saved to:[/green] {output_path}")
+
+
 # ── Output Printers ──────────────────────────────────────────────────
 
 
@@ -617,6 +770,67 @@ def _print_dead_code(result: dict[str, Any]) -> None:
         for t in empty:
             table.add_row(t.get("TABLE_SCHEMA", ""), t.get("TABLE_NAME", ""))
         console.print(table)
+
+
+def _export_diff_markdown(diff: Any, output_path: str) -> None:
+    """Export diff result as markdown."""
+    lines = [
+        "# Schema Diff Report",
+        "",
+        f"**Source:** {diff.source_database} ({diff.source_server})",
+        f"**Target:** {diff.target_database} ({diff.target_server})",
+        f"**Overall Risk:** {diff.risk_level}",
+        "",
+    ]
+    lines.append("## Summary\n")
+    lines.append("| Object Type | Added | Removed | Modified |")
+    lines.append("|---|---:|---:|---:|")
+    for cat, counts in diff.summary.items():
+        lines.append(f"| {cat} | {counts['Added']} | {counts['Removed']} | {counts['Modified']} |")
+    lines.append("")
+
+    if diff.risks:
+        lines.append("## Risk Assessment\n")
+        lines.append("| Change | Risk | Affected |")
+        lines.append("|---|---|---|")
+        for r in diff.risks:
+            if r.risk_score > 0:
+                lines.append(
+                    f"| {r.change_description} | {r.risk_level} "
+                    f"| {len(r.affected_objects)} objects |"
+                )
+        lines.append("")
+
+    lines.append("---")
+    lines.append("*Generated by [SQLForensic](https://github.com/mcandiri/sqlforensic)*")
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
+def _export_diff_json(diff: Any, output_path: str) -> None:
+    """Export diff result as JSON."""
+    import json
+    from dataclasses import asdict
+    from datetime import datetime
+
+    from sqlforensic import __version__
+
+    data = {
+        "metadata": {
+            "tool": "SQLForensic",
+            "version": __version__,
+            "generated_at": datetime.now().isoformat(),
+            "source_database": diff.source_database,
+            "target_database": diff.target_database,
+            "provider": diff.provider,
+        },
+        "risk_level": diff.risk_level,
+        "total_changes": diff.total_changes,
+        "summary": diff.summary,
+        "risks": [asdict(r) for r in diff.risks],
+    }
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, default=str)
 
 
 def _configure_logging(verbose: bool) -> None:

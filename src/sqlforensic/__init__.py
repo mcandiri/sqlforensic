@@ -17,6 +17,7 @@ from sqlforensic.config import AnalysisConfig, ConnectionConfig
 from sqlforensic.connectors.base import BaseConnector
 from sqlforensic.connectors.postgresql import PostgreSQLConnector
 from sqlforensic.connectors.sqlserver import SQLServerConnector
+from sqlforensic.diff.diff_result import DiffResult
 
 logger = logging.getLogger(__name__)
 
@@ -306,6 +307,35 @@ class DatabaseForensic:
         finally:
             connector.disconnect()
 
+    def diff(
+        self,
+        target: DatabaseForensic,
+        include_data: bool = False,
+        schema_only: bool = False,
+    ) -> DiffResult:
+        """Compare this database schema against another.
+
+        Args:
+            target: The target DatabaseForensic instance to compare against.
+            include_data: Compare row counts between databases.
+            schema_only: Skip SP/View/Function comparison.
+
+        Returns:
+            DiffResult with all detected differences.
+        """
+        from sqlforensic.analyzers.diff_analyzer import DiffAnalyzer
+
+        source_connector = self._get_connector()
+        target_connector = target._get_connector()
+
+        analyzer = DiffAnalyzer(
+            source_connector,
+            target_connector,
+            include_data=include_data,
+            schema_only=schema_only,
+        )
+        return analyzer.analyze()
+
     def export_html(self, output_path: str) -> None:
         """Run full analysis and export as HTML report."""
         from sqlforensic.reporters.html_reporter import HTMLReporter
@@ -339,6 +369,7 @@ __all__ = [
     "DatabaseForensic",
     "AnalysisReport",
     "ImpactResult",
+    "DiffResult",
     "ConnectionConfig",
     "AnalysisConfig",
     "__version__",

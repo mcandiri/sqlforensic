@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLForensic Diff — {{ diff.source_database }} vs {{ diff.target_database }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ── Reset & Variables ── */
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.3);
+            --green: #22c55e;
+            --yellow: #eab308;
+            --orange: #f97316;
+            --red: #ef4444;
+            --cyan: #06b6d4;
+            --border: #334155;
+            --radius: 12px;
+            --risk-critical: #dc3545;
+            --risk-high: #fd7e14;
+            --risk-medium: #ffc107;
+            --risk-low: #17a2b8;
+            --risk-none: #6c757d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .header .db-comparison {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        .db-name {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .db-name .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .db-arrow {
+            font-size: 1.5rem;
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .header .meta {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+
+        /* ── Risk Gauge ── */
+        .risk-gauge-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2rem 0;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .risk-gauge {
+            position: relative;
+            width: 160px;
+            height: 160px;
+        }
+        .risk-gauge-bg, .risk-gauge-fill {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+        }
+        .risk-gauge-bg {
+            background: conic-gradient(var(--bg-hover) 0deg, var(--bg-hover) 360deg);
+            mask: radial-gradient(transparent 60%, black 61%);
+            -webkit-mask: radial-gradient(transparent 60%, black 61%);
+        }
+        .risk-gauge-fill {
+            transition: all 1s ease;
+            mask: radial-gradient(transparent 60%, black 61%);
+            -webkit-mask: radial-gradient(transparent 60%, black 61%);
+        }
+        .risk-gauge-fill[data-level="CRITICAL"] {
+            background: conic-gradient(var(--risk-critical) 0deg, var(--risk-critical) 324deg, transparent 324deg);
+        }
+        .risk-gauge-fill[data-level="HIGH"] {
+            background: conic-gradient(var(--risk-high) 0deg, var(--risk-high) 252deg, transparent 252deg);
+        }
+        .risk-gauge-fill[data-level="MEDIUM"] {
+            background: conic-gradient(var(--risk-medium) 0deg, var(--risk-medium) 180deg, transparent 180deg);
+        }
+        .risk-gauge-fill[data-level="LOW"] {
+            background: conic-gradient(var(--risk-low) 0deg, var(--risk-low) 108deg, transparent 108deg);
+        }
+        .risk-gauge-fill[data-level="NONE"] {
+            background: conic-gradient(var(--risk-none) 0deg, var(--risk-none) 36deg, transparent 36deg);
+        }
+        .risk-gauge-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .risk-gauge-level {
+            font-size: 1.1rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .risk-gauge-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .risk-summary-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .risk-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .risk-stat .stat-value {
+            font-weight: 700;
+            font-size: 1.5rem;
+            min-width: 50px;
+            color: var(--accent);
+        }
+        .risk-stat .stat-label {
+            color: var(--text-secondary);
+        }
+
+        /* ── Navigation ── */
+        .nav {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+        .nav-btn {
+            padding: 0.65rem 1.25rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .nav-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* ── Pages ── */
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Cards Grid ── */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .card-value.added { color: var(--green); }
+        .card-value.removed { color: var(--red); }
+        .card-value.modified { color: var(--yellow); }
+        .card-value.neutral { color: var(--accent); }
+        .card-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        /* ── Section Titles ── */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Tables ── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin: 1rem 0;
+        }
+        .data-table th {
+            background: var(--bg-secondary);
+            padding: 0.875rem 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        .data-table th:hover { color: var(--text-primary); }
+        .data-table th .sort-icon {
+            margin-left: 0.25rem;
+            font-size: 0.65rem;
+            opacity: 0.4;
+        }
+        .data-table th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+        .data-table td {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        .data-table tr:hover td { background: var(--bg-hover); }
+        .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+        /* ── Risk Badges ── */
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        .badge-critical {
+            background: rgba(220, 53, 69, 0.15);
+            color: var(--risk-critical);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        .badge-high {
+            background: rgba(253, 126, 20, 0.15);
+            color: var(--risk-high);
+            border: 1px solid rgba(253, 126, 20, 0.3);
+        }
+        .badge-medium {
+            background: rgba(255, 193, 7, 0.15);
+            color: var(--risk-medium);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        .badge-low {
+            background: rgba(23, 162, 184, 0.15);
+            color: var(--risk-low);
+            border: 1px solid rgba(23, 162, 184, 0.3);
+        }
+        .badge-none {
+            background: rgba(108, 117, 125, 0.15);
+            color: var(--risk-none);
+            border: 1px solid rgba(108, 117, 125, 0.3);
+        }
+
+        /* Change type badges */
+        .badge-added {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .badge-removed {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .badge-modified {
+            background: rgba(234, 179, 8, 0.15);
+            color: var(--yellow);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        /* ── Category Summary Row ── */
+        .category-row {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+        .category-row:hover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+        }
+        .category-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            min-width: 180px;
+        }
+        .category-counts {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .category-count {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+        .category-count .count-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .category-count .count-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Recommendation List ── */
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+        }
+        .recommendation-list li {
+            padding: 0.75rem 1rem;
+            border-left: 3px solid var(--accent);
+            background: var(--bg-card);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .recommendation-list li:hover {
+            background: var(--bg-hover);
+            border-left-color: var(--yellow);
+        }
+
+        /* ── Breaking Change Alert ── */
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            border: 1px solid;
+        }
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.3);
+            color: var(--risk-critical);
+        }
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: var(--accent);
+        }
+        .alert-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .alert ul {
+            margin: 0.5rem 0 0 1.5rem;
+            font-size: 0.875rem;
+        }
+        .alert li { margin-bottom: 0.25rem; }
+
+        /* ── Migration Info ── */
+        .migration-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .migration-stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            text-align: center;
+        }
+        .migration-stat .stat-num {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .migration-stat .stat-text {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* ── No Changes State ── */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .empty-state p { font-size: 1.1rem; }
+
+        /* ── Search Box ── */
+        .search-box {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .search-box::placeholder { color: var(--text-muted); }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .header h1 { font-size: 1.75rem; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .nav { flex-wrap: wrap; }
+            .db-comparison { flex-direction: column; gap: 0.5rem; }
+            .db-arrow { transform: rotate(90deg); }
+            .category-row { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+            .risk-gauge-section { flex-direction: column; }
+            .migration-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .cards { grid-template-columns: 1fr; }
+            .migration-stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- ════════════════════════════════════════════════════ -->
+    <!-- HEADER                                              -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="header">
+        <h1>SQLForensic</h1>
+        <div class="subtitle">Schema Diff Report</div>
+        <div class="db-comparison">
+            <div class="db-name">
+                <span class="label">Source</span>
+                {{ diff.source_database }}
+            </div>
+            <span class="db-arrow">&rarr;</span>
+            <div class="db-name">
+                <span class="label">Target</span>
+                {{ diff.target_database }}
+            </div>
+        </div>
+        <div class="meta">
+            {% if diff.provider %}{{ diff.provider }} &middot; {% endif %}
+            Generated {{ generated_at }}
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!-- NAVIGATION                                          -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="nav">
+        <button class="nav-btn active" onclick="showPage('dashboard', this)">Dashboard</button>
+        <button class="nav-btn" onclick="showPage('changes', this)">Changes</button>
+        <button class="nav-btn" onclick="showPage('risks', this)">Risk Assessment</button>
+        <button class="nav-btn" onclick="showPage('migration', this)">Migration</button>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!-- DASHBOARD                                           -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+
+        <!-- Risk gauge + overall stats -->
+        <div class="risk-gauge-section">
+            <div class="risk-gauge">
+                <div class="risk-gauge-bg"></div>
+                <div class="risk-gauge-fill" data-level="{{ diff.risk_level }}"></div>
+                <div class="risk-gauge-label">
+                    <div class="risk-gauge-level badge badge-{{ diff.risk_level|lower }}">{{ diff.risk_level }}</div>
+                    <div class="risk-gauge-sub">Overall Risk</div>
+                </div>
+            </div>
+            <div class="risk-summary-stats">
+                <div class="risk-stat">
+                    <span class="stat-value">{{ diff.total_changes }}</span>
+                    <span class="stat-label">Total Changes</span>
+                </div>
+                <div class="risk-stat">
+                    <span class="stat-value">{{ diff.risks|length }}</span>
+                    <span class="stat-label">Risk Items</span>
+                </div>
+                <div class="risk-stat">
+                    <span class="stat-value">
+                        {%- set ns = namespace(count=0) -%}
+                        {%- for r in diff.risks -%}
+                            {%- set ns.count = ns.count + r.breaking_changes|length -%}
+                        {%- endfor -%}
+                        {{ ns.count }}
+                    </span>
+                    <span class="stat-label">Breaking Changes</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary metric cards -->
+        <h2 class="section-title">Summary by Category</h2>
+        <div class="cards">
+            {% set total_added = 0 %}
+            {% set total_removed = 0 %}
+            {% set total_modified = 0 %}
+            {% for category, counts in summary.items() %}
+                {% set total_added = total_added + counts.get('Added', 0) %}
+                {% set total_removed = total_removed + counts.get('Removed', 0) %}
+                {% set total_modified = total_modified + counts.get('Modified', 0) %}
+            {% endfor %}
+            <div class="card">
+                <div class="card-value neutral">{{ diff.total_changes }}</div>
+                <div class="card-label">Total Changes</div>
+            </div>
+            <div class="card">
+                <div class="card-value added">
+                    {%- set ns_a = namespace(v=0) -%}
+                    {%- for c, ct in summary.items() -%}{%- set ns_a.v = ns_a.v + ct.get('Added', 0) -%}{%- endfor -%}
+                    {{ ns_a.v }}
+                </div>
+                <div class="card-label">Added</div>
+            </div>
+            <div class="card">
+                <div class="card-value removed">
+                    {%- set ns_r = namespace(v=0) -%}
+                    {%- for c, ct in summary.items() -%}{%- set ns_r.v = ns_r.v + ct.get('Removed', 0) -%}{%- endfor -%}
+                    {{ ns_r.v }}
+                </div>
+                <div class="card-label">Removed</div>
+            </div>
+            <div class="card">
+                <div class="card-value modified">
+                    {%- set ns_m = namespace(v=0) -%}
+                    {%- for c, ct in summary.items() -%}{%- set ns_m.v = ns_m.v + ct.get('Modified', 0) -%}{%- endfor -%}
+                    {{ ns_m.v }}
+                </div>
+                <div class="card-label">Modified</div>
+            </div>
+        </div>
+
+        <!-- Per-category breakdown -->
+        {% for category, counts in summary.items() %}
+        {% if counts.get('Added', 0) or counts.get('Removed', 0) or counts.get('Modified', 0) %}
+        <div class="category-row">
+            <span class="category-name">{{ category }}</span>
+            <div class="category-counts">
+                <div class="category-count">
+                    <span class="count-value" style="color: var(--green)">{{ counts.get('Added', 0) }}</span>
+                    <span class="count-label">Added</span>
+                </div>
+                <div class="category-count">
+                    <span class="count-value" style="color: var(--red)">{{ counts.get('Removed', 0) }}</span>
+                    <span class="count-label">Removed</span>
+                </div>
+                <div class="category-count">
+                    <span class="count-value" style="color: var(--yellow)">{{ counts.get('Modified', 0) }}</span>
+                    <span class="count-label">Modified</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!-- CHANGES                                             -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="page" id="page-changes">
+        <h2 class="section-title">All Changes</h2>
+        <input type="text" class="search-box" placeholder="Search changes..." oninput="filterChanges(this.value)">
+
+        {% if diff.has_changes %}
+        <table class="data-table" id="changes-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('changes-table', 0)">Object <span class="sort-icon">&#9650;&#9660;</span></th>
+                    <th onclick="sortTable('changes-table', 1)">Category <span class="sort-icon">&#9650;&#9660;</span></th>
+                    <th onclick="sortTable('changes-table', 2)">Change <span class="sort-icon">&#9650;&#9660;</span></th>
+                    <th onclick="sortTable('changes-table', 3)">Details <span class="sort-icon">&#9650;&#9660;</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Added Tables -->
+                {% for t in diff.tables.added_tables %}
+                <tr data-search="{{ t.name|lower }}">
+                    <td>{{ t.schema }}.{{ t.name }}</td>
+                    <td>Table</td>
+                    <td><span class="badge badge-added">ADDED</span></td>
+                    <td>{{ t.columns|length }} columns{% if t.row_count %}, {{ t.row_count }} rows{% endif %}</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Removed Tables -->
+                {% for t in diff.tables.removed_tables %}
+                <tr data-search="{{ t.name|lower }}">
+                    <td>{{ t.schema }}.{{ t.name }}</td>
+                    <td>Table</td>
+                    <td><span class="badge badge-removed">REMOVED</span></td>
+                    <td>{{ t.columns|length }} columns{% if t.row_count %}, {{ t.row_count }} rows{% endif %}</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Modified Tables -->
+                {% for t in diff.tables.modified_tables %}
+                <tr data-search="{{ t.table_name|lower }}">
+                    <td>{{ t.table_schema }}.{{ t.table_name }}</td>
+                    <td>Table</td>
+                    <td><span class="badge badge-modified">MODIFIED</span></td>
+                    <td>
+                        {% if t.added_columns %}+{{ t.added_columns|length }} col{% endif %}
+                        {% if t.removed_columns %} -{{ t.removed_columns|length }} col{% endif %}
+                        {% if t.modified_columns %} ~{{ t.modified_columns|length }} col{% endif %}
+                        {% if t.added_constraints %} +{{ t.added_constraints|length }} constraint{% endif %}
+                        {% if t.removed_constraints %} -{{ t.removed_constraints|length }} constraint{% endif %}
+                        {% if t.added_foreign_keys %} +{{ t.added_foreign_keys|length }} FK{% endif %}
+                        {% if t.removed_foreign_keys %} -{{ t.removed_foreign_keys|length }} FK{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+
+                <!-- Added Indexes -->
+                {% for idx in diff.indexes.added_indexes %}
+                <tr data-search="{{ idx.index_name|lower }}">
+                    <td>{{ idx.table_name }}.{{ idx.index_name }}</td>
+                    <td>Index</td>
+                    <td><span class="badge badge-added">ADDED</span></td>
+                    <td>{{ idx.index_type }}{% if idx.is_unique %} UNIQUE{% endif %} ({{ idx.columns }})</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Removed Indexes -->
+                {% for idx in diff.indexes.removed_indexes %}
+                <tr data-search="{{ idx.index_name|lower }}">
+                    <td>{{ idx.table_name }}.{{ idx.index_name }}</td>
+                    <td>Index</td>
+                    <td><span class="badge badge-removed">REMOVED</span></td>
+                    <td>{{ idx.index_type }}{% if idx.is_unique %} UNIQUE{% endif %} ({{ idx.columns }})</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Modified Indexes -->
+                {% for idx in diff.indexes.modified_indexes %}
+                <tr data-search="{{ idx.index_name|lower }}">
+                    <td>{{ idx.table_name }}.{{ idx.index_name }}</td>
+                    <td>Index</td>
+                    <td><span class="badge badge-modified">MODIFIED</span></td>
+                    <td>{{ idx.old_columns }} &rarr; {{ idx.new_columns }}</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Added Foreign Keys -->
+                {% for fk in diff.foreign_keys_added %}
+                <tr data-search="{{ fk.constraint_name|lower }}">
+                    <td>{{ fk.constraint_name }}</td>
+                    <td>Foreign Key</td>
+                    <td><span class="badge badge-added">ADDED</span></td>
+                    <td>{{ fk.parent_table }}.{{ fk.parent_column }} &rarr; {{ fk.referenced_table }}.{{ fk.referenced_column }}</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Removed Foreign Keys -->
+                {% for fk in diff.foreign_keys_removed %}
+                <tr data-search="{{ fk.constraint_name|lower }}">
+                    <td>{{ fk.constraint_name }}</td>
+                    <td>Foreign Key</td>
+                    <td><span class="badge badge-removed">REMOVED</span></td>
+                    <td>{{ fk.parent_table }}.{{ fk.parent_column }} &rarr; {{ fk.referenced_table }}.{{ fk.referenced_column }}</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Added Procedures -->
+                {% for sp in diff.procedures.added %}
+                <tr data-search="{{ sp.name|lower if sp.name is defined else sp.get('name', '')|lower }}">
+                    <td>{{ sp.schema if sp.schema is defined else sp.get('schema', '') }}.{{ sp.name if sp.name is defined else sp.get('name', '') }}</td>
+                    <td>Stored Procedure</td>
+                    <td><span class="badge badge-added">ADDED</span></td>
+                    <td>New procedure</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Removed Procedures -->
+                {% for sp in diff.procedures.removed %}
+                <tr data-search="{{ sp.name|lower if sp.name is defined else sp.get('name', '')|lower }}">
+                    <td>{{ sp.schema if sp.schema is defined else sp.get('schema', '') }}.{{ sp.name if sp.name is defined else sp.get('name', '') }}</td>
+                    <td>Stored Procedure</td>
+                    <td><span class="badge badge-removed">REMOVED</span></td>
+                    <td>Procedure removed</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Modified Procedures -->
+                {% for sp in diff.procedures.modified %}
+                <tr data-search="{{ sp.name|lower }}">
+                    <td>{{ sp.schema }}.{{ sp.name }}</td>
+                    <td>Stored Procedure</td>
+                    <td><span class="badge badge-modified">MODIFIED</span></td>
+                    <td>Body changed</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Added Views -->
+                {% for v in diff.views.added %}
+                <tr data-search="{{ v.name|lower if v.name is defined else v.get('name', '')|lower }}">
+                    <td>{{ v.schema if v.schema is defined else v.get('schema', '') }}.{{ v.name if v.name is defined else v.get('name', '') }}</td>
+                    <td>View</td>
+                    <td><span class="badge badge-added">ADDED</span></td>
+                    <td>New view</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Removed Views -->
+                {% for v in diff.views.removed %}
+                <tr data-search="{{ v.name|lower if v.name is defined else v.get('name', '')|lower }}">
+                    <td>{{ v.schema if v.schema is defined else v.get('schema', '') }}.{{ v.name if v.name is defined else v.get('name', '') }}</td>
+                    <td>View</td>
+                    <td><span class="badge badge-removed">REMOVED</span></td>
+                    <td>View removed</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Modified Views -->
+                {% for v in diff.views.modified %}
+                <tr data-search="{{ v.name|lower }}">
+                    <td>{{ v.schema }}.{{ v.name }}</td>
+                    <td>View</td>
+                    <td><span class="badge badge-modified">MODIFIED</span></td>
+                    <td>Definition changed</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Added Functions -->
+                {% for fn in diff.functions.added %}
+                <tr data-search="{{ fn.name|lower if fn.name is defined else fn.get('name', '')|lower }}">
+                    <td>{{ fn.schema if fn.schema is defined else fn.get('schema', '') }}.{{ fn.name if fn.name is defined else fn.get('name', '') }}</td>
+                    <td>Function</td>
+                    <td><span class="badge badge-added">ADDED</span></td>
+                    <td>New function</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Removed Functions -->
+                {% for fn in diff.functions.removed %}
+                <tr data-search="{{ fn.name|lower if fn.name is defined else fn.get('name', '')|lower }}">
+                    <td>{{ fn.schema if fn.schema is defined else fn.get('schema', '') }}.{{ fn.name if fn.name is defined else fn.get('name', '') }}</td>
+                    <td>Function</td>
+                    <td><span class="badge badge-removed">REMOVED</span></td>
+                    <td>Function removed</td>
+                </tr>
+                {% endfor %}
+
+                <!-- Modified Functions -->
+                {% for fn in diff.functions.modified %}
+                <tr data-search="{{ fn.name|lower }}">
+                    <td>{{ fn.schema }}.{{ fn.name }}</td>
+                    <td>Function</td>
+                    <td><span class="badge badge-modified">MODIFIED</span></td>
+                    <td>Definition changed</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">&#10003;</div>
+            <p>No schema differences detected between the two databases.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!-- RISK ASSESSMENT                                     -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="page" id="page-risks">
+        <h2 class="section-title">Risk Assessment</h2>
+
+        {% if diff.risks %}
+
+        <!-- Breaking changes alert -->
+        {%- set ns_bc = namespace(items=[]) -%}
+        {%- for r in diff.risks -%}
+            {%- for bc in r.breaking_changes -%}
+                {%- set ns_bc.items = ns_bc.items + [bc] -%}
+            {%- endfor -%}
+        {%- endfor -%}
+        {% if ns_bc.items %}
+        <div class="alert alert-danger">
+            <div class="alert-title">Breaking Changes Detected</div>
+            <p>The following changes may break existing applications or queries:</p>
+            <ul>
+                {% for bc in ns_bc.items %}
+                <li>{{ bc }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Risk table -->
+        <table class="data-table" id="risk-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('risk-table', 0)">Change <span class="sort-icon">&#9650;&#9660;</span></th>
+                    <th onclick="sortTable('risk-table', 1)">Table <span class="sort-icon">&#9650;&#9660;</span></th>
+                    <th onclick="sortTable('risk-table', 2)">Risk <span class="sort-icon">&#9650;&#9660;</span></th>
+                    <th class="num" onclick="sortTable('risk-table', 3)">Score <span class="sort-icon">&#9650;&#9660;</span></th>
+                    <th>Affected Objects</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for risk in diff.risks %}
+                <tr>
+                    <td>{{ risk.change_description }}</td>
+                    <td>{{ risk.table }}</td>
+                    <td><span class="badge badge-{{ risk.risk_level|lower }}">{{ risk.risk_level }}</span></td>
+                    <td class="num">{{ "%.0f"|format(risk.risk_score) }}</td>
+                    <td>
+                        {% if risk.affected_objects %}
+                            {{ risk.affected_objects[:5]|join(', ') }}
+                            {% if risk.affected_objects|length > 5 %}
+                                <span style="color: var(--text-muted)"> (+{{ risk.affected_objects|length - 5 }} more)</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: var(--text-muted)">&mdash;</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Recommendations -->
+        {%- set ns_rec = namespace(items=[]) -%}
+        {%- for r in diff.risks -%}
+            {%- for rec in r.recommendations -%}
+                {%- if rec not in ns_rec.items -%}
+                    {%- set ns_rec.items = ns_rec.items + [rec] -%}
+                {%- endif -%}
+            {%- endfor -%}
+        {%- endfor -%}
+        {% if ns_rec.items %}
+        <h2 class="section-title">Recommendations</h2>
+        <ul class="recommendation-list">
+            {% for rec in ns_rec.items %}
+            <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">&#9745;</div>
+            <p>No risk items identified. All changes appear safe to apply.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!-- MIGRATION                                           -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="page" id="page-migration">
+        <h2 class="section-title">Migration Information</h2>
+
+        {% if diff.has_changes %}
+        <div class="alert alert-info">
+            <div class="alert-title">Migration Scope</div>
+            <p>The following operations would be needed to migrate from
+            <strong>{{ diff.source_database }}</strong> to <strong>{{ diff.target_database }}</strong>.</p>
+        </div>
+
+        <div class="migration-stats">
+            <div class="migration-stat">
+                <div class="stat-num">{{ diff.tables.added_tables|length }}</div>
+                <div class="stat-text">CREATE TABLE</div>
+            </div>
+            <div class="migration-stat">
+                <div class="stat-num">{{ diff.tables.removed_tables|length }}</div>
+                <div class="stat-text">DROP TABLE</div>
+            </div>
+            <div class="migration-stat">
+                <div class="stat-num">{{ diff.tables.modified_tables|length }}</div>
+                <div class="stat-text">ALTER TABLE</div>
+            </div>
+            <div class="migration-stat">
+                <div class="stat-num">{{ diff.indexes.added_indexes|length }}</div>
+                <div class="stat-text">CREATE INDEX</div>
+            </div>
+            <div class="migration-stat">
+                <div class="stat-num">{{ diff.indexes.removed_indexes|length }}</div>
+                <div class="stat-text">DROP INDEX</div>
+            </div>
+            <div class="migration-stat">
+                <div class="stat-num">{{ diff.foreign_keys_added|length }}</div>
+                <div class="stat-text">ADD FK</div>
+            </div>
+            <div class="migration-stat">
+                <div class="stat-num">{{ diff.foreign_keys_removed|length }}</div>
+                <div class="stat-text">DROP FK</div>
+            </div>
+            <div class="migration-stat">
+                <div class="stat-num">
+                    {{ diff.procedures.added|length + diff.procedures.removed|length + diff.procedures.modified|length
+                     + diff.views.added|length + diff.views.removed|length + diff.views.modified|length
+                     + diff.functions.added|length + diff.functions.removed|length + diff.functions.modified|length }}
+                </div>
+                <div class="stat-text">Object Changes</div>
+            </div>
+        </div>
+
+        <!-- Modified table details -->
+        {% if diff.tables.modified_tables %}
+        <h2 class="section-title">Table Modifications Detail</h2>
+        {% for mod in diff.tables.modified_tables %}
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="color: var(--text-secondary); font-size: 1rem; margin-bottom: 0.5rem;">
+                {{ mod.table_schema }}.{{ mod.table_name }}
+                {% if mod.risk_score > 0 %}
+                    <span class="badge badge-{% if mod.risk_score >= 80 %}critical{% elif mod.risk_score >= 60 %}high{% elif mod.risk_score >= 40 %}medium{% else %}low{% endif %}" style="margin-left: 0.5rem;">
+                        Risk: {{ "%.0f"|format(mod.risk_score) }}
+                    </span>
+                {% endif %}
+            </h3>
+
+            {% if mod.added_columns or mod.removed_columns or mod.modified_columns %}
+            <table class="data-table" style="margin: 0.5rem 0;">
+                <thead>
+                    <tr><th>Column</th><th>Change</th><th>Details</th></tr>
+                </thead>
+                <tbody>
+                    {% for col in mod.added_columns %}
+                    <tr>
+                        <td>{{ col.name }}</td>
+                        <td><span class="badge badge-added">ADDED</span></td>
+                        <td>{{ col.data_type }}{% if col.max_length %} ({{ col.max_length }}){% endif %}{% if not col.is_nullable %} NOT NULL{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    {% for col in mod.removed_columns %}
+                    <tr>
+                        <td>{{ col.name }}</td>
+                        <td><span class="badge badge-removed">REMOVED</span></td>
+                        <td>{{ col.data_type }}{% if col.max_length %} ({{ col.max_length }}){% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    {% for col in mod.modified_columns %}
+                    <tr>
+                        <td>{{ col.column_name }}</td>
+                        <td>
+                            <span class="badge badge-modified">{{ col.change_type|upper|replace('_', ' ') }}</span>
+                            {% if col.is_breaking %}<span class="badge badge-critical" style="margin-left: 0.25rem;">BREAKING</span>{% endif %}
+                        </td>
+                        <td>{{ col.old_value }} &rarr; {{ col.new_value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+            {% if mod.risk_details %}
+            <div style="margin-top: 0.5rem; padding-left: 1rem; border-left: 2px solid var(--border);">
+                {% for detail in mod.risk_details %}
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">{{ detail }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">&#10003;</div>
+            <p>No migration needed. Schemas are identical.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!-- FOOTER                                              -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="footer">
+        Generated by <strong>SQLForensic</strong> &middot; {{ generated_at }}
+    </div>
+</div>
+
+<script>
+/* ── Page Navigation ── */
+function showPage(name, btn) {
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('page-' + name).classList.add('active');
+    if (btn) btn.classList.add('active');
+}
+
+/* ── Change Search / Filter ── */
+function filterChanges(query) {
+    var q = query.toLowerCase();
+    var rows = document.querySelectorAll('#changes-table tbody tr');
+    rows.forEach(function(row) {
+        var searchText = (row.getAttribute('data-search') || '') + ' ' + row.textContent.toLowerCase();
+        row.style.display = searchText.indexOf(q) !== -1 ? '' : 'none';
+    });
+}
+
+/* ── Sortable Tables ── */
+function sortTable(tableId, colIndex) {
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+    var rows = Array.from(tbody.querySelectorAll('tr'));
+    var headers = table.querySelectorAll('th');
+
+    /* Determine sort direction */
+    var th = headers[colIndex];
+    var asc = !th.classList.contains('sorted-asc');
+    headers.forEach(function(h) {
+        h.classList.remove('sorted', 'sorted-asc', 'sorted-desc');
+    });
+    th.classList.add('sorted', asc ? 'sorted-asc' : 'sorted-desc');
+
+    rows.sort(function(a, b) {
+        var aVal = (a.cells[colIndex] || {}).textContent || '';
+        var bVal = (b.cells[colIndex] || {}).textContent || '';
+        aVal = aVal.trim().toLowerCase();
+        bVal = bVal.trim().toLowerCase();
+
+        /* Try numeric sort */
+        var aNum = parseFloat(aVal);
+        var bNum = parseFloat(bVal);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+            return asc ? aNum - bNum : bNum - aNum;
+        }
+        /* Fallback to string sort */
+        if (aVal < bVal) return asc ? -1 : 1;
+        if (aVal > bVal) return asc ? 1 : -1;
+        return 0;
+    });
+
+    rows.forEach(function(row) { tbody.appendChild(row); });
+}
+</script>
+</body>
+</html>
