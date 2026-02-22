@@ -1,0 +1,989 @@
+{
+  "metadata": {
+    "tool": "SQLForensic",
+    "version": "1.0.0",
+    "generated_at": "2026-02-22T14:35:07.482916",
+    "database": "SchoolDB",
+    "provider": "sqlserver"
+  },
+  "health_score": 68,
+  "schema_overview": {
+    "tables": 15,
+    "views": 4,
+    "stored_procedures": 30,
+    "functions": 3,
+    "indexes": 22,
+    "foreign_keys": 12,
+    "total_columns": 127,
+    "total_rows": 1847263
+  },
+  "tables": [
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Students",
+      "row_count": 42350,
+      "column_count": 12,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Teachers",
+      "row_count": 1280,
+      "column_count": 10,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Courses",
+      "row_count": 485,
+      "column_count": 9,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Enrollments",
+      "row_count": 215780,
+      "column_count": 7,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Grades",
+      "row_count": 892410,
+      "column_count": 8,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Payments",
+      "row_count": 178320,
+      "column_count": 11,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Departments",
+      "row_count": 24,
+      "column_count": 6,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Classrooms",
+      "row_count": 312,
+      "column_count": 7,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Schedules",
+      "row_count": 4820,
+      "column_count": 10,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Attendance",
+      "row_count": 387600,
+      "column_count": 6,
+      "has_primary_key": false
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Exams",
+      "row_count": 3150,
+      "column_count": 9,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "ExamResults",
+      "row_count": 98740,
+      "column_count": 7,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Assignments",
+      "row_count": 12840,
+      "column_count": 8,
+      "has_primary_key": true
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Submissions",
+      "row_count": 8920,
+      "column_count": 9,
+      "has_primary_key": false
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "Users",
+      "row_count": 232,
+      "column_count": 8,
+      "has_primary_key": true
+    }
+  ],
+  "views": [
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "vw_StudentEnrollments",
+      "VIEW_DEFINITION": null
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "vw_TeacherSchedules",
+      "VIEW_DEFINITION": null
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "vw_CourseGrades",
+      "VIEW_DEFINITION": null
+    },
+    {
+      "TABLE_SCHEMA": "dbo",
+      "TABLE_NAME": "vw_PaymentSummary",
+      "VIEW_DEFINITION": null
+    }
+  ],
+  "stored_procedures": [
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetStudentById"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetStudentsByDepartment"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_InsertStudent"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_UpdateStudent"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_DeleteStudent"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_EnrollStudent"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_DropEnrollment"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetEnrollmentsByCourse"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_RecordGrade"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetGradesByStudent"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_CalculateGPA"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_ProcessPayment"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_RefundPayment"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetPaymentHistory"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GenerateTranscript"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetTeacherSchedule"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_AssignTeacherToCourse"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_RecordAttendance"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetAttendanceReport"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_CreateExam"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_RecordExamResult"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetExamResultsByCourse"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_CreateAssignment"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_SubmitAssignment"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GradeSubmission"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_GetDepartmentStats"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_MigrateOldGrades"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_CleanupTempRecords"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_SyncUserAccounts"
+    },
+    {
+      "ROUTINE_SCHEMA": "dbo",
+      "ROUTINE_NAME": "sp_AuditLoginAttempts"
+    }
+  ],
+  "relationships": {
+    "explicit": [
+      {
+        "constraint_name": "FK_Enrollments_Students",
+        "parent_table": "Enrollments",
+        "parent_column": "StudentId",
+        "referenced_table": "Students",
+        "referenced_column": "Id"
+      },
+      {
+        "constraint_name": "FK_Enrollments_Courses",
+        "parent_table": "Enrollments",
+        "parent_column": "CourseId",
+        "referenced_table": "Courses",
+        "referenced_column": "Id"
+      },
+      {
+        "constraint_name": "FK_Grades_Enrollments",
+        "parent_table": "Grades",
+        "parent_column": "EnrollmentId",
+        "referenced_table": "Enrollments",
+        "referenced_column": "Id"
+      },
+      {
+        "constraint_name": "FK_Courses_Departments",
+        "parent_table": "Courses",
+        "parent_column": "DepartmentId",
+        "referenced_table": "Departments",
+        "referenced_column": "Id"
+      },
+      {
+        "constraint_name": "FK_Payments_Students",
+        "parent_table": "Payments",
+        "parent_column": "StudentId",
+        "referenced_table": "Students",
+        "referenced_column": "Id"
+      }
+    ],
+    "implicit": [
+      {
+        "parent_table": "Schedules",
+        "parent_column": "CourseId",
+        "referenced_table": "Courses",
+        "referenced_column": "Id",
+        "confidence": 80,
+        "source": "stored_procedure",
+        "source_name": "sp_GetTeacherSchedule"
+      },
+      {
+        "parent_table": "Schedules",
+        "parent_column": "TeacherId",
+        "referenced_table": "Teachers",
+        "referenced_column": "Id",
+        "confidence": 60,
+        "source": "naming_convention",
+        "source_name": "TeacherId -> Teachers"
+      },
+      {
+        "parent_table": "Schedules",
+        "parent_column": "ClassroomId",
+        "referenced_table": "Classrooms",
+        "referenced_column": "Id",
+        "confidence": 60,
+        "source": "naming_convention",
+        "source_name": "ClassroomId -> Classrooms"
+      },
+      {
+        "parent_table": "Attendance",
+        "parent_column": "StudentId",
+        "referenced_table": "Students",
+        "referenced_column": "Id",
+        "confidence": 80,
+        "source": "stored_procedure",
+        "source_name": "sp_RecordAttendance"
+      },
+      {
+        "parent_table": "ExamResults",
+        "parent_column": "ExamId",
+        "referenced_table": "Exams",
+        "referenced_column": "Id",
+        "confidence": 60,
+        "source": "naming_convention",
+        "source_name": "ExamId -> Exams"
+      },
+      {
+        "parent_table": "ExamResults",
+        "parent_column": "StudentId",
+        "referenced_table": "Students",
+        "referenced_column": "Id",
+        "confidence": 60,
+        "source": "naming_convention",
+        "source_name": "StudentId -> Students"
+      },
+      {
+        "parent_table": "Submissions",
+        "parent_column": "AssignmentId",
+        "referenced_table": "Assignments",
+        "referenced_column": "Id",
+        "confidence": 80,
+        "source": "stored_procedure",
+        "source_name": "sp_SubmitAssignment"
+      },
+      {
+        "parent_table": "Submissions",
+        "parent_column": "StudentId",
+        "referenced_table": "Students",
+        "referenced_column": "Id",
+        "confidence": 60,
+        "source": "naming_convention",
+        "source_name": "StudentId -> Students"
+      },
+      {
+        "parent_table": "Teachers",
+        "parent_column": "DepartmentId",
+        "referenced_table": "Departments",
+        "referenced_column": "Id",
+        "confidence": 60,
+        "source": "naming_convention",
+        "source_name": "DepartmentId -> Departments"
+      }
+    ]
+  },
+  "indexes": {
+    "missing": [
+      {
+        "table_name": "Attendance",
+        "equality_columns": "[StudentId], [ScheduleId]",
+        "inequality_columns": "[AttendanceDate]",
+        "included_columns": "[Status]",
+        "improvement_measure": 98452.37,
+        "user_seeks": 47832,
+        "user_scans": 12410,
+        "create_sql": "CREATE NONCLUSTERED INDEX IX_Attendance_StudentId_ScheduleId_AttendanceDate ON [dbo].[Attendance] ([StudentId], [ScheduleId], [AttendanceDate]) INCLUDE ([Status]);"
+      },
+      {
+        "table_name": "Grades",
+        "equality_columns": "[EnrollmentId]",
+        "inequality_columns": "[GradedDate]",
+        "included_columns": "[Score], [LetterGrade]",
+        "improvement_measure": 72318.91,
+        "user_seeks": 34210,
+        "user_scans": 8904,
+        "create_sql": "CREATE NONCLUSTERED INDEX IX_Grades_EnrollmentId_GradedDate ON [dbo].[Grades] ([EnrollmentId], [GradedDate]) INCLUDE ([Score], [LetterGrade]);"
+      },
+      {
+        "table_name": "Submissions",
+        "equality_columns": "[AssignmentId], [StudentId]",
+        "inequality_columns": "",
+        "included_columns": "[SubmittedAt], [Grade]",
+        "improvement_measure": 15289.44,
+        "user_seeks": 8921,
+        "user_scans": 2103,
+        "create_sql": "CREATE NONCLUSTERED INDEX IX_Submissions_AssignmentId_StudentId ON [dbo].[Submissions] ([AssignmentId], [StudentId]) INCLUDE ([SubmittedAt], [Grade]);"
+      }
+    ],
+    "unused": [
+      {
+        "table_name": "Payments",
+        "index_name": "IX_Payments_TransactionRef",
+        "index_type": "NONCLUSTERED",
+        "columns": "TransactionRef",
+        "user_updates": 178320,
+        "drop_sql": "DROP INDEX [IX_Payments_TransactionRef] ON [dbo].[Payments];"
+      },
+      {
+        "table_name": "Students",
+        "index_name": "IX_Students_MiddleName",
+        "index_type": "NONCLUSTERED",
+        "columns": "MiddleName",
+        "user_updates": 42350,
+        "drop_sql": "DROP INDEX [IX_Students_MiddleName] ON [dbo].[Students];"
+      }
+    ],
+    "duplicates": [
+      {
+        "table_name": "Enrollments",
+        "index_name": "IX_Enrollments_StudentId_v2",
+        "duplicate_of": "IX_Enrollments_StudentId",
+        "columns": "StudentId",
+        "drop_sql": "DROP INDEX [IX_Enrollments_StudentId_v2] ON [dbo].[Enrollments];"
+      }
+    ]
+  },
+  "dead_code": {
+    "dead_tables": [
+      {
+        "TABLE_SCHEMA": "dbo",
+        "TABLE_NAME": "Users",
+        "row_count": 232,
+        "column_count": 8
+      },
+      {
+        "TABLE_SCHEMA": "dbo",
+        "TABLE_NAME": "Classrooms",
+        "row_count": 312,
+        "column_count": 7
+      }
+    ],
+    "dead_procedures": [
+      {
+        "ROUTINE_SCHEMA": "dbo",
+        "ROUTINE_NAME": "sp_MigrateOldGrades"
+      },
+      {
+        "ROUTINE_SCHEMA": "dbo",
+        "ROUTINE_NAME": "sp_CleanupTempRecords"
+      },
+      {
+        "ROUTINE_SCHEMA": "dbo",
+        "ROUTINE_NAME": "sp_SyncUserAccounts"
+      },
+      {
+        "ROUTINE_SCHEMA": "dbo",
+        "ROUTINE_NAME": "sp_AuditLoginAttempts"
+      },
+      {
+        "ROUTINE_SCHEMA": "dbo",
+        "ROUTINE_NAME": "sp_DropEnrollment"
+      }
+    ],
+    "orphan_columns": [
+      {
+        "table_name": "Students",
+        "column_name": "MiddleName",
+        "data_type": "nvarchar"
+      },
+      {
+        "table_name": "Students",
+        "column_name": "Suffix",
+        "data_type": "nvarchar"
+      },
+      {
+        "table_name": "Payments",
+        "column_name": "TransactionRef",
+        "data_type": "nvarchar"
+      },
+      {
+        "table_name": "Payments",
+        "column_name": "Notes",
+        "data_type": "nvarchar"
+      },
+      {
+        "table_name": "Teachers",
+        "column_name": "Bio",
+        "data_type": "nvarchar"
+      },
+      {
+        "table_name": "Courses",
+        "column_name": "Syllabus",
+        "data_type": "nvarchar"
+      },
+      {
+        "table_name": "ExamResults",
+        "column_name": "ReviewerNotes",
+        "data_type": "nvarchar"
+      }
+    ],
+    "empty_tables": []
+  },
+  "sp_analysis": [
+    {
+      "name": "sp_GenerateTranscript",
+      "schema": "dbo",
+      "line_count": 247,
+      "referenced_tables": ["Students", "Enrollments", "Courses", "Grades", "Departments", "ExamResults"],
+      "crud_operations": {"SELECT": 8, "INSERT": 1, "UPDATE": 0, "DELETE": 0},
+      "join_count": 7,
+      "subquery_depth": 3,
+      "has_cursors": true,
+      "has_dynamic_sql": true,
+      "has_temp_tables": true,
+      "case_count": 5,
+      "complexity_score": 82,
+      "complexity_category": "HIGH",
+      "anti_patterns": ["SELECT *", "CURSOR", "Dynamic SQL without sp_executesql"],
+      "parameters": [
+        {"name": "@StudentId", "data_type": "INT", "direction": "IN"},
+        {"name": "@AcademicYear", "data_type": "INT", "direction": "IN"},
+        {"name": "@IncludeExams", "data_type": "BIT", "direction": "IN"}
+      ]
+    },
+    {
+      "name": "sp_CalculateGPA",
+      "schema": "dbo",
+      "line_count": 158,
+      "referenced_tables": ["Students", "Enrollments", "Grades", "Courses"],
+      "crud_operations": {"SELECT": 5, "INSERT": 0, "UPDATE": 1, "DELETE": 0},
+      "join_count": 4,
+      "subquery_depth": 2,
+      "has_cursors": true,
+      "has_dynamic_sql": false,
+      "has_temp_tables": true,
+      "case_count": 8,
+      "complexity_score": 64,
+      "complexity_category": "HIGH",
+      "anti_patterns": ["CURSOR", "NOLOCK"],
+      "parameters": [
+        {"name": "@StudentId", "data_type": "INT", "direction": "IN"},
+        {"name": "@Semester", "data_type": "NVARCHAR(20)", "direction": "IN"},
+        {"name": "@GPA", "data_type": "DECIMAL(3,2)", "direction": "OUT"}
+      ]
+    },
+    {
+      "name": "sp_ProcessPayment",
+      "schema": "dbo",
+      "line_count": 132,
+      "referenced_tables": ["Payments", "Students", "Enrollments"],
+      "crud_operations": {"SELECT": 3, "INSERT": 1, "UPDATE": 1, "DELETE": 0},
+      "join_count": 2,
+      "subquery_depth": 1,
+      "has_cursors": false,
+      "has_dynamic_sql": false,
+      "has_temp_tables": false,
+      "case_count": 4,
+      "complexity_score": 38,
+      "complexity_category": "MEDIUM",
+      "anti_patterns": [],
+      "parameters": [
+        {"name": "@StudentId", "data_type": "INT", "direction": "IN"},
+        {"name": "@Amount", "data_type": "DECIMAL(10,2)", "direction": "IN"},
+        {"name": "@PaymentMethod", "data_type": "NVARCHAR(50)", "direction": "IN"},
+        {"name": "@TransactionId", "data_type": "INT", "direction": "OUT"}
+      ]
+    },
+    {
+      "name": "sp_GetAttendanceReport",
+      "schema": "dbo",
+      "line_count": 114,
+      "referenced_tables": ["Attendance", "Students", "Schedules", "Courses"],
+      "crud_operations": {"SELECT": 4, "INSERT": 0, "UPDATE": 0, "DELETE": 0},
+      "join_count": 3,
+      "subquery_depth": 2,
+      "has_cursors": false,
+      "has_dynamic_sql": true,
+      "has_temp_tables": true,
+      "case_count": 2,
+      "complexity_score": 35,
+      "complexity_category": "MEDIUM",
+      "anti_patterns": ["Dynamic SQL without sp_executesql"],
+      "parameters": [
+        {"name": "@CourseId", "data_type": "INT", "direction": "IN"},
+        {"name": "@StartDate", "data_type": "DATE", "direction": "IN"},
+        {"name": "@EndDate", "data_type": "DATE", "direction": "IN"}
+      ]
+    },
+    {
+      "name": "sp_GetExamResultsByCourse",
+      "schema": "dbo",
+      "line_count": 87,
+      "referenced_tables": ["ExamResults", "Exams", "Students", "Courses"],
+      "crud_operations": {"SELECT": 3, "INSERT": 0, "UPDATE": 0, "DELETE": 0},
+      "join_count": 3,
+      "subquery_depth": 1,
+      "has_cursors": false,
+      "has_dynamic_sql": false,
+      "has_temp_tables": false,
+      "case_count": 3,
+      "complexity_score": 27,
+      "complexity_category": "LOW",
+      "anti_patterns": ["SELECT *"],
+      "parameters": [
+        {"name": "@CourseId", "data_type": "INT", "direction": "IN"},
+        {"name": "@ExamId", "data_type": "INT", "direction": "IN"}
+      ]
+    }
+  ],
+  "dependencies": {
+    "nodes": [
+      {"id": "Students", "type": "table", "in_degree": 12, "out_degree": 0},
+      {"id": "Teachers", "type": "table", "in_degree": 3, "out_degree": 0},
+      {"id": "Courses", "type": "table", "in_degree": 8, "out_degree": 1},
+      {"id": "Enrollments", "type": "table", "in_degree": 6, "out_degree": 2},
+      {"id": "Grades", "type": "table", "in_degree": 4, "out_degree": 1},
+      {"id": "Payments", "type": "table", "in_degree": 3, "out_degree": 1},
+      {"id": "Departments", "type": "table", "in_degree": 2, "out_degree": 0},
+      {"id": "Classrooms", "type": "table", "in_degree": 0, "out_degree": 0},
+      {"id": "Schedules", "type": "table", "in_degree": 2, "out_degree": 0},
+      {"id": "Attendance", "type": "table", "in_degree": 2, "out_degree": 0},
+      {"id": "Exams", "type": "table", "in_degree": 2, "out_degree": 1},
+      {"id": "ExamResults", "type": "table", "in_degree": 2, "out_degree": 2},
+      {"id": "Assignments", "type": "table", "in_degree": 2, "out_degree": 1},
+      {"id": "Submissions", "type": "table", "in_degree": 2, "out_degree": 2},
+      {"id": "Users", "type": "table", "in_degree": 0, "out_degree": 0},
+      {"id": "sp_GenerateTranscript", "type": "procedure", "in_degree": 0, "out_degree": 6},
+      {"id": "sp_CalculateGPA", "type": "procedure", "in_degree": 1, "out_degree": 4},
+      {"id": "sp_ProcessPayment", "type": "procedure", "in_degree": 0, "out_degree": 3},
+      {"id": "sp_RecordGrade", "type": "procedure", "in_degree": 1, "out_degree": 2},
+      {"id": "sp_EnrollStudent", "type": "procedure", "in_degree": 0, "out_degree": 2},
+      {"id": "vw_StudentEnrollments", "type": "view", "in_degree": 0, "out_degree": 3},
+      {"id": "vw_CourseGrades", "type": "view", "in_degree": 0, "out_degree": 3}
+    ],
+    "edges": [
+      {"source": "Enrollments", "target": "Students", "type": "foreign_key"},
+      {"source": "Enrollments", "target": "Courses", "type": "foreign_key"},
+      {"source": "Grades", "target": "Enrollments", "type": "foreign_key"},
+      {"source": "Courses", "target": "Departments", "type": "foreign_key"},
+      {"source": "Payments", "target": "Students", "type": "foreign_key"},
+      {"source": "sp_GenerateTranscript", "target": "Students", "type": "references"},
+      {"source": "sp_GenerateTranscript", "target": "Enrollments", "type": "references"},
+      {"source": "sp_GenerateTranscript", "target": "Courses", "type": "references"},
+      {"source": "sp_GenerateTranscript", "target": "Grades", "type": "references"},
+      {"source": "sp_GenerateTranscript", "target": "Departments", "type": "references"},
+      {"source": "sp_GenerateTranscript", "target": "ExamResults", "type": "references"},
+      {"source": "sp_GenerateTranscript", "target": "sp_CalculateGPA", "type": "calls"},
+      {"source": "sp_CalculateGPA", "target": "Students", "type": "references"},
+      {"source": "sp_CalculateGPA", "target": "Enrollments", "type": "references"},
+      {"source": "sp_CalculateGPA", "target": "Grades", "type": "references"},
+      {"source": "sp_CalculateGPA", "target": "Courses", "type": "references"},
+      {"source": "sp_RecordGrade", "target": "Grades", "type": "references"},
+      {"source": "sp_RecordGrade", "target": "Enrollments", "type": "references"},
+      {"source": "sp_RecordGrade", "target": "sp_CalculateGPA", "type": "calls"},
+      {"source": "sp_EnrollStudent", "target": "Enrollments", "type": "references"},
+      {"source": "sp_EnrollStudent", "target": "Students", "type": "references"},
+      {"source": "vw_StudentEnrollments", "target": "Students", "type": "references"},
+      {"source": "vw_StudentEnrollments", "target": "Enrollments", "type": "references"},
+      {"source": "vw_StudentEnrollments", "target": "Courses", "type": "references"},
+      {"source": "vw_CourseGrades", "target": "Courses", "type": "references"},
+      {"source": "vw_CourseGrades", "target": "Grades", "type": "references"},
+      {"source": "vw_CourseGrades", "target": "Enrollments", "type": "references"}
+    ]
+  },
+  "circular_dependencies": [
+    ["sp_GenerateTranscript", "sp_CalculateGPA", "sp_RecordGrade"],
+    ["Enrollments", "Grades", "ExamResults", "Exams"]
+  ],
+  "issues": [
+    {
+      "description": "Tables with no primary key",
+      "severity": "HIGH",
+      "count": 2,
+      "penalty": 8,
+      "category": "schema"
+    },
+    {
+      "description": "Missing foreign key indexes",
+      "severity": "HIGH",
+      "count": 3,
+      "penalty": 5,
+      "category": "indexes"
+    },
+    {
+      "description": "Circular dependencies detected",
+      "severity": "HIGH",
+      "count": 2,
+      "penalty": 5,
+      "category": "dependencies"
+    },
+    {
+      "description": "Unused stored procedures",
+      "severity": "MEDIUM",
+      "count": 5,
+      "penalty": 4,
+      "category": "dead_code"
+    },
+    {
+      "description": "Tables with no relationships",
+      "severity": "MEDIUM",
+      "count": 2,
+      "penalty": 3,
+      "category": "dead_code"
+    },
+    {
+      "description": "SPs with complexity score > 50",
+      "severity": "MEDIUM",
+      "count": 2,
+      "penalty": 3,
+      "category": "complexity"
+    },
+    {
+      "description": "Duplicate indexes",
+      "severity": "MEDIUM",
+      "count": 1,
+      "penalty": 2,
+      "category": "indexes"
+    },
+    {
+      "description": "Security concerns found",
+      "severity": "HIGH",
+      "count": 2,
+      "penalty": 2,
+      "category": "security"
+    }
+  ],
+  "risk_scores": {
+    "tables": [
+      {
+        "name": "Students",
+        "schema": "dbo",
+        "risk_score": 75,
+        "risk_level": "HIGH",
+        "dependent_sp_count": 8,
+        "dependent_sps": [
+          "sp_GetStudentById",
+          "sp_InsertStudent",
+          "sp_UpdateStudent",
+          "sp_DeleteStudent",
+          "sp_EnrollStudent",
+          "sp_GenerateTranscript",
+          "sp_CalculateGPA",
+          "sp_ProcessPayment"
+        ],
+        "fk_dependency_count": 3,
+        "row_count": 42350
+      },
+      {
+        "name": "Enrollments",
+        "schema": "dbo",
+        "risk_score": 70,
+        "risk_level": "HIGH",
+        "dependent_sp_count": 6,
+        "dependent_sps": [
+          "sp_EnrollStudent",
+          "sp_DropEnrollment",
+          "sp_GetEnrollmentsByCourse",
+          "sp_RecordGrade",
+          "sp_GenerateTranscript",
+          "sp_CalculateGPA"
+        ],
+        "fk_dependency_count": 2,
+        "row_count": 215780
+      },
+      {
+        "name": "Grades",
+        "schema": "dbo",
+        "risk_score": 65,
+        "risk_level": "HIGH",
+        "dependent_sp_count": 4,
+        "dependent_sps": [
+          "sp_RecordGrade",
+          "sp_GetGradesByStudent",
+          "sp_CalculateGPA",
+          "sp_GenerateTranscript"
+        ],
+        "fk_dependency_count": 1,
+        "row_count": 892410
+      }
+    ],
+    "procedures": [
+      {
+        "name": "sp_GenerateTranscript",
+        "schema": "dbo",
+        "risk_score": 70,
+        "risk_level": "HIGH",
+        "complexity_score": 82,
+        "referenced_table_count": 6,
+        "caller_count": 0
+      },
+      {
+        "name": "sp_CalculateGPA",
+        "schema": "dbo",
+        "risk_score": 60,
+        "risk_level": "HIGH",
+        "complexity_score": 64,
+        "referenced_table_count": 4,
+        "caller_count": 2
+      },
+      {
+        "name": "sp_ProcessPayment",
+        "schema": "dbo",
+        "risk_score": 53,
+        "risk_level": "MEDIUM",
+        "complexity_score": 38,
+        "referenced_table_count": 3,
+        "caller_count": 0
+      }
+    ]
+  },
+  "security_issues": [
+    {
+      "type": "SQL_INJECTION_RISK",
+      "severity": "HIGH",
+      "description": "SP 'sp_GenerateTranscript' uses dynamic SQL with string concatenation without sp_executesql",
+      "recommendation": "Use sp_executesql with parameters"
+    },
+    {
+      "type": "SQL_INJECTION_RISK",
+      "severity": "HIGH",
+      "description": "SP 'sp_GetAttendanceReport' uses dynamic SQL with string concatenation without sp_executesql",
+      "recommendation": "Use sp_executesql with parameters"
+    }
+  ],
+  "size_info": [
+    {
+      "table_schema": "dbo",
+      "table_name": "Grades",
+      "row_count": 892410,
+      "total_space_kb": 142784,
+      "used_space_kb": 138240,
+      "unused_space_kb": 4544,
+      "avg_row_size_bytes": 158.6
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Attendance",
+      "row_count": 387600,
+      "total_space_kb": 46512,
+      "used_space_kb": 44928,
+      "unused_space_kb": 1584,
+      "avg_row_size_bytes": 118.7
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Enrollments",
+      "row_count": 215780,
+      "total_space_kb": 30208,
+      "used_space_kb": 28672,
+      "unused_space_kb": 1536,
+      "avg_row_size_bytes": 136.1
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Payments",
+      "row_count": 178320,
+      "total_space_kb": 28528,
+      "used_space_kb": 27136,
+      "unused_space_kb": 1392,
+      "avg_row_size_bytes": 155.8
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "ExamResults",
+      "row_count": 98740,
+      "total_space_kb": 14208,
+      "used_space_kb": 13568,
+      "unused_space_kb": 640,
+      "avg_row_size_bytes": 140.7
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Students",
+      "row_count": 42350,
+      "total_space_kb": 8960,
+      "used_space_kb": 8576,
+      "unused_space_kb": 384,
+      "avg_row_size_bytes": 207.3
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Assignments",
+      "row_count": 12840,
+      "total_space_kb": 2816,
+      "used_space_kb": 2688,
+      "unused_space_kb": 128,
+      "avg_row_size_bytes": 214.4
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Submissions",
+      "row_count": 8920,
+      "total_space_kb": 2304,
+      "used_space_kb": 2176,
+      "unused_space_kb": 128,
+      "avg_row_size_bytes": 249.8
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Schedules",
+      "row_count": 4820,
+      "total_space_kb": 768,
+      "used_space_kb": 704,
+      "unused_space_kb": 64,
+      "avg_row_size_bytes": 149.6
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Exams",
+      "row_count": 3150,
+      "total_space_kb": 640,
+      "used_space_kb": 576,
+      "unused_space_kb": 64,
+      "avg_row_size_bytes": 187.2
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Teachers",
+      "row_count": 1280,
+      "total_space_kb": 384,
+      "used_space_kb": 320,
+      "unused_space_kb": 64,
+      "avg_row_size_bytes": 256.0
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Courses",
+      "row_count": 485,
+      "total_space_kb": 192,
+      "used_space_kb": 128,
+      "unused_space_kb": 64,
+      "avg_row_size_bytes": 270.2
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Classrooms",
+      "row_count": 312,
+      "total_space_kb": 128,
+      "used_space_kb": 64,
+      "unused_space_kb": 64,
+      "avg_row_size_bytes": 210.1
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Users",
+      "row_count": 232,
+      "total_space_kb": 128,
+      "used_space_kb": 64,
+      "unused_space_kb": 64,
+      "avg_row_size_bytes": 282.5
+    },
+    {
+      "table_schema": "dbo",
+      "table_name": "Departments",
+      "row_count": 24,
+      "total_space_kb": 64,
+      "used_space_kb": 64,
+      "unused_space_kb": 0,
+      "avg_row_size_bytes": 186.7
+    }
+  ]
+}

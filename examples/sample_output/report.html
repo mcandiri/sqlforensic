@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLForensic Report — SchoolDB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+:root{--bg-primary:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--bg-hover:#334155;--text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;--accent:#3b82f6;--accent-glow:rgba(59,130,246,0.3);--green:#22c55e;--yellow:#eab308;--orange:#f97316;--red:#ef4444;--border:#334155;--radius:12px}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100vh}.container{max-width:1400px;margin:0 auto;padding:2rem}.header{text-align:center;padding:3rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}.header h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent),#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem}.header .subtitle{color:var(--text-secondary);font-size:1rem}.header .meta{color:var(--text-muted);font-size:.85rem;margin-top:.5rem}.nav{display:flex;gap:.25rem;padding:.25rem;background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:2rem;overflow-x:auto;border:1px solid var(--border)}.nav-btn{padding:.65rem 1.25rem;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;border-radius:10px;font-size:.875rem;font-weight:500;transition:all .2s;white-space:nowrap}.nav-btn:hover{background:var(--bg-hover);color:var(--text-primary)}.nav-btn.active{background:var(--accent);color:#fff;box-shadow:0 0 20px var(--accent-glow)}.page{display:none}.page.active{display:block;animation:fadeIn .3s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.health-section{text-align:center;margin:2rem 0}.gauge-container{position:relative;width:200px;height:200px;margin:0 auto}.gauge-bg,.gauge-fill{position:absolute;width:200px;height:200px;border-radius:50%}.gauge-bg{background:conic-gradient(var(--bg-hover) 0deg,var(--bg-hover) 360deg);mask:radial-gradient(transparent 60%,#000 61%);-webkit-mask:radial-gradient(transparent 60%,#000 61%)}.gauge-fill{background:conic-gradient(var(--green) 0deg,var(--accent) calc(var(--score)*3.6deg),transparent calc(var(--score)*3.6deg));mask:radial-gradient(transparent 60%,#000 61%);-webkit-mask:radial-gradient(transparent 60%,#000 61%);transition:all 1s ease}.gauge-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}.gauge-score{font-size:3rem;font-weight:800;line-height:1}.gauge-max{font-size:.875rem;color:var(--text-muted)}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin:2rem 0}.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;transition:all .2s}.card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.3)}.card-value{font-size:2rem;font-weight:700;color:var(--accent)}.card-label{font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.25rem}.data-table{width:100%;border-collapse:collapse;background:var(--bg-card);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin:1rem 0}.data-table th{background:var(--bg-secondary);padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:1px solid var(--border)}.data-table td{padding:.75rem 1rem;font-size:.875rem;border-bottom:1px solid rgba(51,65,85,.5)}.data-table tr:hover td{background:var(--bg-hover)}.data-table .num{text-align:right;font-variant-numeric:tabular-nums}.badge{display:inline-block;padding:.2rem .6rem;border-radius:6px;font-size:.7rem;font-weight:600;letter-spacing:.03em}.badge-critical{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}.badge-high{background:rgba(249,115,22,.15);color:var(--orange);border:1px solid rgba(249,115,22,.3)}.badge-medium{background:rgba(234,179,8,.15);color:var(--yellow);border:1px solid rgba(234,179,8,.3)}.badge-low{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}.section-title{font-size:1.25rem;font-weight:700;margin:2rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}.search-box{width:100%;padding:.75rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:.875rem;margin-bottom:1rem;outline:none;transition:border-color .2s}.search-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}.search-box::placeholder{color:var(--text-muted)}.tree-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.5rem;overflow:hidden}.tree-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;cursor:pointer;background:var(--bg-card);transition:background .2s}.tree-header:hover{background:var(--bg-hover)}.tree-header .name{font-weight:600}.tree-header .meta-info{color:var(--text-muted);font-size:.8rem}.tree-body{display:none;padding:0 1rem 1rem;background:var(--bg-card)}.tree-item.open .tree-body{display:block}.tree-chevron{transition:transform .2s;color:var(--text-muted)}.tree-item.open .tree-chevron{transform:rotate(90deg)}#graph-container{width:100%;height:600px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;position:relative}#graph-container svg{width:100%;height:100%}.graph-controls{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}.graph-controls select,.graph-controls button{padding:.5rem .875rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:.8rem;cursor:pointer}.graph-controls button:hover{border-color:var(--accent)}.graph-legend{display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap}.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-secondary)}.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}.node-tooltip{position:absolute;background:var(--bg-card);border:1px solid var(--accent);border-radius:8px;padding:.75rem 1rem;font-size:.8rem;pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:250px}.node-tooltip.visible{opacity:1}.node-tooltip strong{display:block;margin-bottom:.3rem;color:var(--accent)}.code-block{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.8rem;overflow-x:auto;color:#c9d1d9;margin:.5rem 0}.heatmap{display:flex;flex-wrap:wrap;gap:4px;margin:1rem 0}.heatmap-cell{width:24px;height:24px;border-radius:4px;cursor:pointer;transition:transform .15s;position:relative}.heatmap-cell:hover{transform:scale(1.3);z-index:10}@media(max-width:768px){.container{padding:1rem}.header h1{font-size:1.75rem}.cards{grid-template-columns:repeat(2,1fr)}.nav{flex-wrap:wrap}#graph-container{height:400px}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>SQLForensic</h1>
+        <div class="subtitle">Database Forensics Report</div>
+        <div class="meta">SchoolDB &middot; SQL Server &middot; 2026-02-22 14:30:00</div>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard</button>
+        <button class="nav-btn" onclick="showPage('schema')">Schema Browser</button>
+        <button class="nav-btn" onclick="showPage('graph')">Dependency Graph</button>
+        <button class="nav-btn" onclick="showPage('issues')">Issues</button>
+        <button class="nav-btn" onclick="showPage('procedures')">Procedures</button>
+        <button class="nav-btn" onclick="showPage('indexes')">Indexes</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+        <div class="health-section">
+            <div class="gauge-container">
+                <div class="gauge-bg"></div>
+                <div class="gauge-fill" style="--score:68"></div>
+                <div class="gauge-label">
+                    <div class="gauge-score">68</div>
+                    <div class="gauge-max">/100</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card"><div class="card-value">15</div><div class="card-label">Tables</div></div>
+            <div class="card"><div class="card-value">5</div><div class="card-label">Views</div></div>
+            <div class="card"><div class="card-value">30</div><div class="card-label">Stored Procedures</div></div>
+            <div class="card"><div class="card-value">45</div><div class="card-label">Indexes</div></div>
+            <div class="card"><div class="card-value">18</div><div class="card-label">Foreign Keys</div></div>
+            <div class="card"><div class="card-value">285</div><div class="card-label">Total Columns</div></div>
+            <div class="card"><div class="card-value">2.4M</div><div class="card-label">Total Rows</div></div>
+            <div class="card"><div class="card-value">9</div><div class="card-label">Issues Found</div></div>
+        </div>
+
+        <h2 class="section-title">Issues Summary</h2>
+        <table class="data-table">
+            <thead><tr><th>Issue</th><th>Severity</th><th class="num">Count</th><th class="num">Penalty</th></tr></thead>
+            <tbody>
+                <tr><td>Tables with no primary key</td><td><span class="badge badge-high">HIGH</span></td><td class="num">2</td><td class="num">-10</td></tr>
+                <tr><td>Missing foreign key indexes</td><td><span class="badge badge-high">HIGH</span></td><td class="num">8</td><td class="num">-16</td></tr>
+                <tr><td>Unused stored procedures</td><td><span class="badge badge-medium">MEDIUM</span></td><td class="num">5</td><td class="num">-5</td></tr>
+                <tr><td>Tables with no relationships</td><td><span class="badge badge-medium">MEDIUM</span></td><td class="num">3</td><td class="num">-6</td></tr>
+                <tr><td>Duplicate indexes</td><td><span class="badge badge-medium">MEDIUM</span></td><td class="num">2</td><td class="num">-4</td></tr>
+                <tr><td>Circular dependencies detected</td><td><span class="badge badge-high">HIGH</span></td><td class="num">1</td><td class="num">-10</td></tr>
+                <tr><td>SPs with complexity score &gt; 50</td><td><span class="badge badge-medium">MEDIUM</span></td><td class="num">4</td><td class="num">-8</td></tr>
+                <tr><td>Tables with no indexes</td><td><span class="badge badge-high">HIGH</span></td><td class="num">1</td><td class="num">-5</td></tr>
+                <tr><td>Security concerns found</td><td><span class="badge badge-high">HIGH</span></td><td class="num">2</td><td class="num">-6</td></tr>
+            </tbody>
+        </table>
+
+        <h2 class="section-title">Dependency Hotspots</h2>
+        <table class="data-table">
+            <thead><tr><th>Table</th><th class="num">Dependent SPs</th><th>Risk Level</th></tr></thead>
+            <tbody>
+                <tr><td>Students</td><td class="num">22</td><td><span class="badge badge-critical">CRITICAL</span></td></tr>
+                <tr><td>Courses</td><td class="num">18</td><td><span class="badge badge-critical">CRITICAL</span></td></tr>
+                <tr><td>Enrollments</td><td class="num">14</td><td><span class="badge badge-high">HIGH</span></td></tr>
+                <tr><td>Users</td><td class="num">11</td><td><span class="badge badge-high">HIGH</span></td></tr>
+                <tr><td>Grades</td><td class="num">9</td><td><span class="badge badge-medium">MEDIUM</span></td></tr>
+                <tr><td>Payments</td><td class="num">7</td><td><span class="badge badge-medium">MEDIUM</span></td></tr>
+                <tr><td>Exams</td><td class="num">5</td><td><span class="badge badge-low">LOW</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SCHEMA BROWSER -->
+    <div class="page" id="page-schema">
+        <h2 class="section-title">Schema Browser</h2>
+        <input type="text" class="search-box" placeholder="Search tables..." oninput="filterTables(this.value)">
+        <div id="table-tree">
+            <div class="tree-item" data-name="students"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Students</span></div><div class="meta-info">12 cols &middot; 450.0K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>FirstName</td><td>varchar(100)</td><td>NO</td><td></td></tr><tr><td>LastName</td><td>varchar(100)</td><td>NO</td><td></td></tr><tr><td>Email</td><td>varchar(255)</td><td>NO</td><td></td></tr><tr><td>Phone</td><td>varchar(20)</td><td>YES</td><td></td></tr><tr><td>DateOfBirth</td><td>date</td><td>YES</td><td></td></tr><tr><td>EnrollmentDate</td><td>datetime</td><td>NO</td><td></td></tr><tr><td>DepartmentId</td><td>int</td><td>YES</td><td></td></tr><tr><td>GPA</td><td>decimal(3,2)</td><td>YES</td><td></td></tr><tr><td>Status</td><td>varchar(20)</td><td>NO</td><td></td></tr><tr><td>CreatedAt</td><td>datetime</td><td>NO</td><td></td></tr><tr><td>UpdatedAt</td><td>datetime</td><td>YES</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="teachers"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Teachers</span></div><div class="meta-info">8 cols &middot; 120 rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>FirstName</td><td>varchar(100)</td><td>NO</td><td></td></tr><tr><td>LastName</td><td>varchar(100)</td><td>NO</td><td></td></tr><tr><td>Email</td><td>varchar(255)</td><td>NO</td><td></td></tr><tr><td>DepartmentId</td><td>int</td><td>YES</td><td></td></tr><tr><td>HireDate</td><td>date</td><td>NO</td><td></td></tr><tr><td>Salary</td><td>decimal(10,2)</td><td>YES</td><td></td></tr><tr><td>IsActive</td><td>bit</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="courses"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Courses</span></div><div class="meta-info">7 cols &middot; 350 rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>CourseName</td><td>varchar(200)</td><td>NO</td><td></td></tr><tr><td>CourseCode</td><td>varchar(20)</td><td>NO</td><td></td></tr><tr><td>Credits</td><td>int</td><td>NO</td><td></td></tr><tr><td>DepartmentId</td><td>int</td><td>YES</td><td></td></tr><tr><td>TeacherId</td><td>int</td><td>YES</td><td></td></tr><tr><td>MaxCapacity</td><td>int</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="enrollments"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Enrollments</span></div><div class="meta-info">5 cols &middot; 890.0K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>StudentId</td><td>int</td><td>NO</td><td></td></tr><tr><td>CourseId</td><td>int</td><td>NO</td><td></td></tr><tr><td>EnrollDate</td><td>datetime</td><td>NO</td><td></td></tr><tr><td>Status</td><td>varchar(20)</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="grades"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Grades</span></div><div class="meta-info">6 cols &middot; 750.0K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>StudentId</td><td>int</td><td>NO</td><td></td></tr><tr><td>CourseId</td><td>int</td><td>NO</td><td></td></tr><tr><td>Grade</td><td>decimal(5,2)</td><td>YES</td><td></td></tr><tr><td>GradeDate</td><td>datetime</td><td>YES</td><td></td></tr><tr><td>GradedBy</td><td>int</td><td>YES</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="payments"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Payments</span></div><div class="meta-info">6 cols &middot; 180.0K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>StudentId</td><td>int</td><td>NO</td><td></td></tr><tr><td>Amount</td><td>decimal(10,2)</td><td>NO</td><td></td></tr><tr><td>PaymentDate</td><td>datetime</td><td>NO</td><td></td></tr><tr><td>PaymentMethod</td><td>varchar(50)</td><td>YES</td><td></td></tr><tr><td>Status</td><td>varchar(20)</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="departments"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Departments</span></div><div class="meta-info">4 cols &middot; 12 rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>DepartmentName</td><td>varchar(200)</td><td>NO</td><td></td></tr><tr><td>Budget</td><td>decimal(12,2)</td><td>YES</td><td></td></tr><tr><td>HeadTeacherId</td><td>int</td><td>YES</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="classrooms"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Classrooms</span></div><div class="meta-info">4 cols &middot; 50 rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>RoomNumber</td><td>varchar(20)</td><td>NO</td><td></td></tr><tr><td>Building</td><td>varchar(50)</td><td>NO</td><td></td></tr><tr><td>Capacity</td><td>int</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="schedules"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Schedules</span></div><div class="meta-info">6 cols &middot; 1.2K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>CourseId</td><td>int</td><td>NO</td><td></td></tr><tr><td>ClassroomId</td><td>int</td><td>NO</td><td></td></tr><tr><td>DayOfWeek</td><td>int</td><td>NO</td><td></td></tr><tr><td>StartTime</td><td>time</td><td>NO</td><td></td></tr><tr><td>EndTime</td><td>time</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="attendance"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Attendance</span></div><div class="meta-info">5 cols &middot; 95.0K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>StudentId</td><td>int</td><td>NO</td><td></td></tr><tr><td>ScheduleId</td><td>int</td><td>NO</td><td></td></tr><tr><td>AttendanceDate</td><td>date</td><td>NO</td><td></td></tr><tr><td>Status</td><td>varchar(10)</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="exams"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Exams</span></div><div class="meta-info">5 cols &middot; 800 rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>CourseId</td><td>int</td><td>NO</td><td></td></tr><tr><td>ExamDate</td><td>datetime</td><td>NO</td><td></td></tr><tr><td>ExamType</td><td>varchar(20)</td><td>NO</td><td></td></tr><tr><td>MaxScore</td><td>int</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="examresults"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.ExamResults</span></div><div class="meta-info">4 cols &middot; 45.0K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>ExamId</td><td>int</td><td>NO</td><td></td></tr><tr><td>StudentId</td><td>int</td><td>NO</td><td></td></tr><tr><td>Score</td><td>decimal(5,2)</td><td>YES</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="assignments"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Assignments</span></div><div class="meta-info">5 cols &middot; 2.5K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>CourseId</td><td>int</td><td>NO</td><td></td></tr><tr><td>Title</td><td>varchar(200)</td><td>NO</td><td></td></tr><tr><td>DueDate</td><td>datetime</td><td>NO</td><td></td></tr><tr><td>MaxPoints</td><td>int</td><td>NO</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="submissions"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Submissions</span></div><div class="meta-info">5 cols &middot; 28.0K rows</div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>NO</td><td>&#9679;</td></tr><tr><td>AssignmentId</td><td>int</td><td>NO</td><td></td></tr><tr><td>StudentId</td><td>int</td><td>NO</td><td></td></tr><tr><td>SubmittedAt</td><td>datetime</td><td>NO</td><td></td></tr><tr><td>Score</td><td>decimal(5,2)</td><td>YES</td><td></td></tr></tbody></table></div></div>
+            <div class="tree-item" data-name="users"><div class="tree-header" onclick="this.parentElement.classList.toggle('open')"><div><span class="tree-chevron">&#9654;</span> <span class="name">dbo.Users</span></div><div class="meta-info">7 cols &middot; 1.5K rows &middot; <span style="color:var(--red)">No PK</span></div></div><div class="tree-body"><table class="data-table"><thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th></tr></thead><tbody><tr><td>UserId</td><td>int</td><td>NO</td><td></td></tr><tr><td>Username</td><td>varchar(100)</td><td>NO</td><td></td></tr><tr><td>PasswordHash</td><td>varchar(500)</td><td>NO</td><td></td></tr><tr><td>Email</td><td>varchar(255)</td><td>NO</td><td></td></tr><tr><td>Role</td><td>varchar(50)</td><td>NO</td><td></td></tr><tr><td>IsActive</td><td>bit</td><td>NO</td><td></td></tr><tr><td>LastLogin</td><td>datetime</td><td>YES</td><td></td></tr></tbody></table></div></div>
+        </div>
+    </div>
+
+    <!-- DEPENDENCY GRAPH -->
+    <div class="page" id="page-graph">
+        <h2 class="section-title">Interactive Dependency Graph</h2>
+        <div class="graph-controls">
+            <select onchange="filterGraph(this.value)">
+                <option value="all">All Objects</option>
+                <option value="table">Tables Only</option>
+                <option value="procedure">Procedures Only</option>
+                <option value="view">Views Only</option>
+            </select>
+            <button onclick="resetZoom()">Reset Zoom</button>
+        </div>
+        <div id="graph-container"></div>
+        <div id="node-detail" style="margin-top:1rem;padding:1rem;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);min-height:60px;color:var(--text-secondary)">Click a node to see details</div>
+        <div class="graph-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Table</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div>Stored Procedure</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div>View</div>
+            <div class="legend-item"><span style="border-bottom:2px solid #3b82f6;width:20px;display:inline-block"></span>&nbsp;Foreign Key</div>
+            <div class="legend-item"><span style="border-bottom:2px dashed #475569;width:20px;display:inline-block"></span>&nbsp;SP Call</div>
+        </div>
+    </div>
+
+    <!-- ISSUES -->
+    <div class="page" id="page-issues">
+        <h2 class="section-title">All Issues</h2>
+        <div class="graph-controls">
+            <select onchange="filterIssues(this.value)">
+                <option value="all">All Severities</option>
+                <option value="high">HIGH</option>
+                <option value="medium">MEDIUM</option>
+                <option value="low">LOW</option>
+            </select>
+        </div>
+        <table class="data-table" id="issues-table">
+            <thead><tr><th>Issue</th><th>Severity</th><th class="num">Count</th><th>Category</th></tr></thead>
+            <tbody>
+                <tr data-severity="high"><td>Tables with no primary key</td><td><span class="badge badge-high">HIGH</span></td><td class="num">2</td><td>schema</td></tr>
+                <tr data-severity="high"><td>Missing foreign key indexes</td><td><span class="badge badge-high">HIGH</span></td><td class="num">8</td><td>indexes</td></tr>
+                <tr data-severity="medium"><td>Unused stored procedures</td><td><span class="badge badge-medium">MEDIUM</span></td><td class="num">5</td><td>dead_code</td></tr>
+                <tr data-severity="medium"><td>Tables with no relationships</td><td><span class="badge badge-medium">MEDIUM</span></td><td class="num">3</td><td>dead_code</td></tr>
+                <tr data-severity="medium"><td>Duplicate indexes</td><td><span class="badge badge-medium">MEDIUM</span></td><td class="num">2</td><td>indexes</td></tr>
+                <tr data-severity="high"><td>Circular dependencies detected</td><td><span class="badge badge-high">HIGH</span></td><td class="num">1</td><td>dependencies</td></tr>
+                <tr data-severity="medium"><td>SPs with complexity score &gt; 50</td><td><span class="badge badge-medium">MEDIUM</span></td><td class="num">4</td><td>complexity</td></tr>
+                <tr data-severity="high"><td>Tables with no indexes</td><td><span class="badge badge-high">HIGH</span></td><td class="num">1</td><td>indexes</td></tr>
+                <tr data-severity="high"><td>Security concerns found</td><td><span class="badge badge-high">HIGH</span></td><td class="num">2</td><td>security</td></tr>
+            </tbody>
+        </table>
+
+        <h2 class="section-title">Unused Stored Procedures (5)</h2>
+        <table class="data-table">
+            <thead><tr><th>Schema</th><th>Procedure</th></tr></thead>
+            <tbody>
+                <tr><td>dbo</td><td>sp_OldStudentReport</td></tr>
+                <tr><td>dbo</td><td>sp_TempCleanup_v1</td></tr>
+                <tr><td>dbo</td><td>sp_MigrateGrades_2022</td></tr>
+                <tr><td>dbo</td><td>sp_TestPaymentFlow</td></tr>
+                <tr><td>dbo</td><td>sp_DebugEnrollment</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PROCEDURES -->
+    <div class="page" id="page-procedures">
+        <h2 class="section-title">Stored Procedure Analysis</h2>
+        <h3 style="margin:1rem 0 .5rem;color:var(--text-secondary)">Complexity Heatmap</h3>
+        <div class="heatmap">
+            <div class="heatmap-cell" title="sp_EnrollStudent: 72" style="background:var(--red);opacity:0.95"></div>
+            <div class="heatmap-cell" title="sp_ProcessPayments: 65" style="background:var(--red);opacity:0.85"></div>
+            <div class="heatmap-cell" title="sp_GenerateTranscript: 58" style="background:var(--red);opacity:0.8"></div>
+            <div class="heatmap-cell" title="sp_CalculateGPA: 52" style="background:var(--red);opacity:0.75"></div>
+            <div class="heatmap-cell" title="sp_DynamicSearch: 45" style="background:var(--yellow);opacity:0.8"></div>
+            <div class="heatmap-cell" title="sp_GetStudentGrades: 38" style="background:var(--yellow);opacity:0.7"></div>
+            <div class="heatmap-cell" title="sp_UpdateSchedule: 35" style="background:var(--yellow);opacity:0.65"></div>
+            <div class="heatmap-cell" title="sp_AssignTeacher: 32" style="background:var(--yellow);opacity:0.6"></div>
+            <div class="heatmap-cell" title="sp_RecordAttendance: 28" style="background:var(--yellow);opacity:0.55"></div>
+            <div class="heatmap-cell" title="sp_SubmitAssignment: 25" style="background:var(--yellow);opacity:0.5"></div>
+            <div class="heatmap-cell" title="sp_GradeExam: 22" style="background:var(--yellow);opacity:0.48"></div>
+            <div class="heatmap-cell" title="sp_CreateExam: 18" style="background:var(--green);opacity:0.6"></div>
+            <div class="heatmap-cell" title="sp_GetCourseRoster: 15" style="background:var(--green);opacity:0.55"></div>
+            <div class="heatmap-cell" title="sp_AddStudent: 12" style="background:var(--green);opacity:0.5"></div>
+            <div class="heatmap-cell" title="sp_GetDepartments: 8" style="background:var(--green);opacity:0.42"></div>
+            <div class="heatmap-cell" title="sp_ListClassrooms: 5" style="background:var(--green);opacity:0.38"></div>
+            <div class="heatmap-cell" title="sp_GetPaymentStatus: 10" style="background:var(--green);opacity:0.45"></div>
+            <div class="heatmap-cell" title="sp_UpdateStudent: 14" style="background:var(--green);opacity:0.5"></div>
+            <div class="heatmap-cell" title="sp_DeleteEnrollment: 8" style="background:var(--green);opacity:0.42"></div>
+            <div class="heatmap-cell" title="sp_GetTeacherSchedule: 12" style="background:var(--green);opacity:0.48"></div>
+        </div>
+        <h3 style="margin:1.5rem 0 .5rem;color:var(--text-secondary)">Top Complex Procedures</h3>
+        <table class="data-table">
+            <thead><tr><th>Name</th><th class="num">Lines</th><th class="num">Joins</th><th class="num">Tables</th><th>Complexity</th><th class="num">Score</th><th>Anti-Patterns</th></tr></thead>
+            <tbody>
+                <tr><td>dbo.sp_EnrollStudent</td><td class="num">185</td><td class="num">8</td><td class="num">6</td><td><span class="badge badge-high">Complex</span></td><td class="num">72</td><td style="font-size:.75rem;color:var(--text-muted)">Cursor usage, SELECT *, Dynamic SQL</td></tr>
+                <tr><td>dbo.sp_ProcessPayments</td><td class="num">160</td><td class="num">7</td><td class="num">5</td><td><span class="badge badge-high">Complex</span></td><td class="num">65</td><td style="font-size:.75rem;color:var(--text-muted)">Cursor usage, NOLOCK hint</td></tr>
+                <tr><td>dbo.sp_GenerateTranscript</td><td class="num">140</td><td class="num">9</td><td class="num">7</td><td><span class="badge badge-high">Complex</span></td><td class="num">58</td><td style="font-size:.75rem;color:var(--text-muted)">SELECT *</td></tr>
+                <tr><td>dbo.sp_CalculateGPA</td><td class="num">95</td><td class="num">5</td><td class="num">4</td><td><span class="badge badge-high">Complex</span></td><td class="num">52</td><td style="font-size:.75rem;color:var(--text-muted)">&mdash;</td></tr>
+                <tr><td>dbo.sp_DynamicSearch</td><td class="num">45</td><td class="num">2</td><td class="num">3</td><td><span class="badge badge-medium">Medium</span></td><td class="num">45</td><td style="font-size:.75rem;color:var(--text-muted)">Dynamic SQL with string concatenation</td></tr>
+                <tr><td>dbo.sp_GetStudentGrades</td><td class="num">55</td><td class="num">4</td><td class="num">4</td><td><span class="badge badge-medium">Medium</span></td><td class="num">38</td><td style="font-size:.75rem;color:var(--text-muted)">&mdash;</td></tr>
+                <tr><td>dbo.sp_UpdateSchedule</td><td class="num">70</td><td class="num">3</td><td class="num">3</td><td><span class="badge badge-medium">Medium</span></td><td class="num">35</td><td style="font-size:.75rem;color:var(--text-muted)">&mdash;</td></tr>
+                <tr><td>dbo.sp_AssignTeacher</td><td class="num">50</td><td class="num">3</td><td class="num">3</td><td><span class="badge badge-medium">Medium</span></td><td class="num">32</td><td style="font-size:.75rem;color:var(--text-muted)">NOLOCK hint</td></tr>
+                <tr><td>dbo.sp_RecordAttendance</td><td class="num">40</td><td class="num">2</td><td class="num">3</td><td><span class="badge badge-medium">Medium</span></td><td class="num">28</td><td style="font-size:.75rem;color:var(--text-muted)">&mdash;</td></tr>
+                <tr><td>dbo.sp_SubmitAssignment</td><td class="num">35</td><td class="num">2</td><td class="num">2</td><td><span class="badge badge-medium">Medium</span></td><td class="num">25</td><td style="font-size:.75rem;color:var(--text-muted)">&mdash;</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- INDEXES -->
+    <div class="page" id="page-indexes">
+        <h2 class="section-title">Index Analysis</h2>
+        <h3 style="margin:1rem 0 .5rem;color:var(--text-secondary)">Missing Indexes (8)</h3>
+        <table class="data-table">
+            <thead><tr><th>Table</th><th>Columns</th><th class="num">Impact</th><th>SQL</th></tr></thead>
+            <tbody>
+                <tr><td>Grades</td><td>[StudentId], [CourseId]</td><td class="num">125,430</td><td><div class="code-block">CREATE INDEX [IX_Grades_StudentId_CourseId] ON [Grades] (StudentId, CourseId) INCLUDE (Grade);</div></td></tr>
+                <tr><td>Attendance</td><td>[StudentId], [ScheduleId]</td><td class="num">98,200</td><td><div class="code-block">CREATE INDEX [IX_Attendance_StudentId_ScheduleId] ON [Attendance] (StudentId, ScheduleId);</div></td></tr>
+                <tr><td>Payments</td><td>[StudentId]</td><td class="num">72,150</td><td><div class="code-block">CREATE INDEX [IX_Payments_StudentId] ON [Payments] (StudentId) INCLUDE (Amount, PaymentDate);</div></td></tr>
+                <tr><td>ExamResults</td><td>[ExamId], [StudentId]</td><td class="num">56,800</td><td><div class="code-block">CREATE INDEX [IX_ExamResults_ExamId_StudentId] ON [ExamResults] (ExamId, StudentId);</div></td></tr>
+                <tr><td>Submissions</td><td>[AssignmentId]</td><td class="num">34,500</td><td><div class="code-block">CREATE INDEX [IX_Submissions_AssignmentId] ON [Submissions] (AssignmentId) INCLUDE (StudentId, Score);</div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 style="margin:1.5rem 0 .5rem;color:var(--text-secondary)">Unused Indexes (3)</h3>
+        <table class="data-table">
+            <thead><tr><th>Table</th><th>Index</th><th>Columns</th><th class="num">Writes</th><th>SQL</th></tr></thead>
+            <tbody>
+                <tr><td>Students</td><td>IX_Students_Phone</td><td>Phone</td><td class="num">12,400</td><td><div class="code-block">DROP INDEX [IX_Students_Phone] ON [Students];</div></td></tr>
+                <tr><td>Enrollments</td><td>IX_Enrollments_Status</td><td>Status</td><td class="num">8,900</td><td><div class="code-block">DROP INDEX [IX_Enrollments_Status] ON [Enrollments];</div></td></tr>
+                <tr><td>Users</td><td>IX_Users_LastLogin</td><td>LastLogin</td><td class="num">3,200</td><td><div class="code-block">DROP INDEX [IX_Users_LastLogin] ON [Users];</div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 style="margin:1.5rem 0 .5rem;color:var(--text-secondary)">Duplicate Indexes (2)</h3>
+        <table class="data-table">
+            <thead><tr><th>Table</th><th>Index</th><th>Duplicate Of</th><th>Columns</th></tr></thead>
+            <tbody>
+                <tr><td>Enrollments</td><td>IX_Enrollments_CourseId_v2</td><td>IX_Enrollments_CourseId</td><td>CourseId</td></tr>
+                <tr><td>Grades</td><td>IX_Grades_StudentId_v2</td><td>IX_Grades_StudentId</td><td>StudentId</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function initGraph(containerId,graphData){var container=document.getElementById(containerId);if(!container||!graphData||!graphData.nodes||!graphData.nodes.length){container.innerHTML='<p style="color:#64748b;text-align:center;padding:4rem">No dependency data available</p>';return}var width=container.clientWidth,height=container.clientHeight;var colorMap={table:'#3b82f6',procedure:'#8b5cf6',view:'#06b6d4',unknown:'#64748b'};var svg=d3.select('#'+containerId).append('svg').attr('viewBox',[0,0,width,height]);var g=svg.append('g');var zoom=d3.zoom().scaleExtent([.1,5]).on('zoom',function(event){g.attr('transform',event.transform)});svg.call(zoom);var tooltip=d3.select('#'+containerId).append('div').attr('class','node-tooltip');var simulation=d3.forceSimulation(graphData.nodes).force('link',d3.forceLink(graphData.links).id(function(d){return d.id}).distance(100)).force('charge',d3.forceManyBody().strength(-300)).force('center',d3.forceCenter(width/2,height/2)).force('collision',d3.forceCollide().radius(30));var link=g.append('g').selectAll('line').data(graphData.links).join('line').attr('stroke',function(d){return d.type==='foreign_key'?'#3b82f6':'#475569'}).attr('stroke-opacity',.4).attr('stroke-width',function(d){return d.type==='foreign_key'?2:1}).attr('stroke-dasharray',function(d){return d.type==='calls'?'5,5':null});svg.append('defs').selectAll('marker').data(['fk','ref','call']).join('marker').attr('id',function(d){return'arrow-'+d}).attr('viewBox','0 -5 10 10').attr('refX',25).attr('refY',0).attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto').append('path').attr('fill',function(d){return d==='fk'?'#3b82f6':'#475569'}).attr('d','M0,-5L10,0L0,5');link.attr('marker-end',function(d){if(d.type==='foreign_key')return'url(#arrow-fk)';if(d.type==='calls')return'url(#arrow-call)';return'url(#arrow-ref)'});var node=g.append('g').selectAll('g').data(graphData.nodes).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)simulation.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)simulation.alphaTarget(0);d.fx=null;d.fy=null}));node.append('circle').attr('r',function(d){return(d.type==='table'?12:8)+Math.min(d.criticality,15)}).attr('fill',function(d){return colorMap[d.type]||colorMap.unknown}).attr('stroke',function(d){return d.criticality>10?'#ef4444':'#1e293b'}).attr('stroke-width',function(d){return d.criticality>10?2.5:1.5}).attr('opacity',.9);node.append('text').text(function(d){return d.id.length>16?d.id.slice(0,14)+'..':d.id}).attr('dx',function(d){return(d.type==='table'?16:12)+Math.min(d.criticality,10)}).attr('dy',4).attr('fill','#94a3b8').attr('font-size','11px').attr('font-family','Inter,sans-serif');node.on('mouseover',function(event,d){var connected=new Set();graphData.links.forEach(function(l){var src=typeof l.source==='object'?l.source.id:l.source;var tgt=typeof l.target==='object'?l.target.id:l.target;if(src===d.id)connected.add(tgt);if(tgt===d.id)connected.add(src)});connected.add(d.id);node.select('circle').attr('opacity',function(n){return connected.has(n.id)?1:.15});node.select('text').attr('opacity',function(n){return connected.has(n.id)?1:.15});link.attr('stroke-opacity',function(l){var src=typeof l.source==='object'?l.source.id:l.source;var tgt=typeof l.target==='object'?l.target.id:l.target;return(src===d.id||tgt===d.id)?.8:.05});tooltip.classed('visible',true).html('<strong>'+d.id+'</strong>Type: '+d.type+'<br>Connections: '+d.criticality).style('left',(event.offsetX+15)+'px').style('top',(event.offsetY-10)+'px')}).on('mouseout',function(){node.select('circle').attr('opacity',.9);node.select('text').attr('opacity',1);link.attr('stroke-opacity',.4);tooltip.classed('visible',false)}).on('click',function(event,d){var detail=document.getElementById('node-detail');if(detail){var incoming=graphData.links.filter(function(l){return(typeof l.target==='object'?l.target.id:l.target)===d.id});var outgoing=graphData.links.filter(function(l){return(typeof l.source==='object'?l.source.id:l.source)===d.id});detail.innerHTML='<h3 style="color:var(--accent);margin-bottom:0.5rem">'+d.id+'</h3><p><strong>Type:</strong> '+d.type+'</p><p><strong>Incoming:</strong> '+incoming.length+' connections</p><p><strong>Outgoing:</strong> '+outgoing.length+' connections</p>'}});simulation.on('tick',function(){link.attr('x1',function(d){return d.source.x}).attr('y1',function(d){return d.source.y}).attr('x2',function(d){return d.target.x}).attr('y2',function(d){return d.target.y});node.attr('transform',function(d){return'translate('+d.x+','+d.y+')'})});window.filterGraph=function(type){if(type==='all'){node.style('display',null);link.style('display',null)}else{node.style('display',function(d){return d.type===type?null:'none'});link.style('display',function(l){var src=typeof l.source==='object'?l.source:graphData.nodes.find(function(n){return n.id===l.source});var tgt=typeof l.target==='object'?l.target:graphData.nodes.find(function(n){return n.id===l.target});return(src&&src.type===type)||(tgt&&tgt.type===type)?null:'none'})}};window.resetZoom=function(){svg.transition().duration(750).call(zoom.transform,d3.zoomIdentity)}}
+
+function showPage(name){document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active')});document.getElementById('page-'+name).classList.add('active');event.target.classList.add('active');if(name==='graph'&&!window._graphInit){window._graphInit=true;try{initGraph('graph-container',graphData)}catch(e){console.error('Graph init error:',e)}}}
+function filterTables(q){q=q.toLowerCase();document.querySelectorAll('.tree-item').forEach(function(i){i.style.display=(i.dataset.name||'').includes(q)?'':'none'})}
+function filterIssues(s){document.querySelectorAll('#issues-table tbody tr').forEach(function(r){r.style.display=s==='all'||r.dataset.severity===s?'':'none'})}
+
+var graphData={"nodes":[{"id":"Students","type":"table","criticality":22},{"id":"Teachers","type":"table","criticality":8},{"id":"Courses","type":"table","criticality":18},{"id":"Enrollments","type":"table","criticality":14},{"id":"Grades","type":"table","criticality":9},{"id":"Payments","type":"table","criticality":7},{"id":"Departments","type":"table","criticality":5},{"id":"Classrooms","type":"table","criticality":3},{"id":"Schedules","type":"table","criticality":6},{"id":"Attendance","type":"table","criticality":5},{"id":"Exams","type":"table","criticality":5},{"id":"ExamResults","type":"table","criticality":4},{"id":"Assignments","type":"table","criticality":4},{"id":"Submissions","type":"table","criticality":3},{"id":"Users","type":"table","criticality":11},{"id":"sp_EnrollStudent","type":"procedure","criticality":8},{"id":"sp_GetStudentGrades","type":"procedure","criticality":6},{"id":"sp_ProcessPayments","type":"procedure","criticality":5},{"id":"sp_GenerateTranscript","type":"procedure","criticality":9},{"id":"sp_CalculateGPA","type":"procedure","criticality":5},{"id":"sp_DynamicSearch","type":"procedure","criticality":3},{"id":"sp_UpdateSchedule","type":"procedure","criticality":4},{"id":"sp_AssignTeacher","type":"procedure","criticality":4},{"id":"sp_RecordAttendance","type":"procedure","criticality":3},{"id":"sp_CreateExam","type":"procedure","criticality":3},{"id":"sp_GradeExam","type":"procedure","criticality":4},{"id":"sp_SubmitAssignment","type":"procedure","criticality":3},{"id":"sp_AddStudent","type":"procedure","criticality":2},{"id":"sp_GetCourseRoster","type":"procedure","criticality":3},{"id":"sp_GetPaymentStatus","type":"procedure","criticality":2},{"id":"vw_StudentEnrollments","type":"view","criticality":4},{"id":"vw_CourseGrades","type":"view","criticality":5},{"id":"vw_TeacherSchedule","type":"view","criticality":3},{"id":"vw_AttendanceSummary","type":"view","criticality":3},{"id":"vw_PaymentHistory","type":"view","criticality":3}],"links":[{"source":"Enrollments","target":"Students","type":"foreign_key"},{"source":"Enrollments","target":"Courses","type":"foreign_key"},{"source":"Grades","target":"Students","type":"foreign_key"},{"source":"Grades","target":"Courses","type":"foreign_key"},{"source":"Payments","target":"Students","type":"foreign_key"},{"source":"Students","target":"Departments","type":"foreign_key"},{"source":"Courses","target":"Departments","type":"foreign_key"},{"source":"Courses","target":"Teachers","type":"foreign_key"},{"source":"Schedules","target":"Courses","type":"foreign_key"},{"source":"Schedules","target":"Classrooms","type":"foreign_key"},{"source":"Attendance","target":"Students","type":"foreign_key"},{"source":"Attendance","target":"Schedules","type":"foreign_key"},{"source":"Exams","target":"Courses","type":"foreign_key"},{"source":"ExamResults","target":"Exams","type":"foreign_key"},{"source":"ExamResults","target":"Students","type":"foreign_key"},{"source":"Assignments","target":"Courses","type":"foreign_key"},{"source":"Submissions","target":"Assignments","type":"foreign_key"},{"source":"Submissions","target":"Students","type":"foreign_key"},{"source":"sp_EnrollStudent","target":"Students","type":"references"},{"source":"sp_EnrollStudent","target":"Courses","type":"references"},{"source":"sp_EnrollStudent","target":"Enrollments","type":"references"},{"source":"sp_EnrollStudent","target":"Payments","type":"references"},{"source":"sp_GetStudentGrades","target":"Students","type":"references"},{"source":"sp_GetStudentGrades","target":"Grades","type":"references"},{"source":"sp_GetStudentGrades","target":"Courses","type":"references"},{"source":"sp_GetStudentGrades","target":"Enrollments","type":"references"},{"source":"sp_ProcessPayments","target":"Payments","type":"references"},{"source":"sp_ProcessPayments","target":"Students","type":"references"},{"source":"sp_GenerateTranscript","target":"Students","type":"references"},{"source":"sp_GenerateTranscript","target":"Enrollments","type":"references"},{"source":"sp_GenerateTranscript","target":"Grades","type":"references"},{"source":"sp_GenerateTranscript","target":"Courses","type":"references"},{"source":"sp_GenerateTranscript","target":"ExamResults","type":"references"},{"source":"sp_GenerateTranscript","target":"Submissions","type":"references"},{"source":"sp_GenerateTranscript","target":"Assignments","type":"references"},{"source":"sp_CalculateGPA","target":"Students","type":"references"},{"source":"sp_CalculateGPA","target":"Grades","type":"references"},{"source":"sp_CalculateGPA","target":"Courses","type":"references"},{"source":"sp_DynamicSearch","target":"Students","type":"references"},{"source":"sp_UpdateSchedule","target":"Schedules","type":"references"},{"source":"sp_UpdateSchedule","target":"Classrooms","type":"references"},{"source":"sp_AssignTeacher","target":"Teachers","type":"references"},{"source":"sp_AssignTeacher","target":"Courses","type":"references"},{"source":"sp_RecordAttendance","target":"Attendance","type":"references"},{"source":"sp_RecordAttendance","target":"Schedules","type":"references"},{"source":"sp_CreateExam","target":"Exams","type":"references"},{"source":"sp_CreateExam","target":"Courses","type":"references"},{"source":"sp_GradeExam","target":"ExamResults","type":"references"},{"source":"sp_GradeExam","target":"Exams","type":"references"},{"source":"sp_SubmitAssignment","target":"Submissions","type":"references"},{"source":"sp_SubmitAssignment","target":"Assignments","type":"references"},{"source":"sp_AddStudent","target":"Students","type":"references"},{"source":"sp_GetCourseRoster","target":"Enrollments","type":"references"},{"source":"sp_GetCourseRoster","target":"Students","type":"references"},{"source":"sp_GetPaymentStatus","target":"Payments","type":"references"},{"source":"sp_GenerateTranscript","target":"sp_CalculateGPA","type":"calls"},{"source":"vw_StudentEnrollments","target":"Students","type":"references"},{"source":"vw_StudentEnrollments","target":"Enrollments","type":"references"},{"source":"vw_CourseGrades","target":"Courses","type":"references"},{"source":"vw_CourseGrades","target":"Grades","type":"references"},{"source":"vw_CourseGrades","target":"Students","type":"references"},{"source":"vw_TeacherSchedule","target":"Teachers","type":"references"},{"source":"vw_TeacherSchedule","target":"Schedules","type":"references"},{"source":"vw_AttendanceSummary","target":"Attendance","type":"references"},{"source":"vw_AttendanceSummary","target":"Students","type":"references"},{"source":"vw_PaymentHistory","target":"Payments","type":"references"},{"source":"vw_PaymentHistory","target":"Students","type":"references"}]};
+</script>
+</body>
+</html>

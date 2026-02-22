@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLForensic Report — {{ report.database }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>{{ css }}</style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>SQLForensic</h1>
+        <div class="subtitle">Database Forensics Report</div>
+        <div class="meta">{{ report.database }} &middot; {{ report.provider }} &middot; {{ generated_at }}</div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav">
+        <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard</button>
+        <button class="nav-btn" onclick="showPage('schema')">Schema Browser</button>
+        <button class="nav-btn" onclick="showPage('graph')">Dependency Graph</button>
+        <button class="nav-btn" onclick="showPage('issues')">Issues</button>
+        <button class="nav-btn" onclick="showPage('procedures')">Procedures</button>
+        <button class="nav-btn" onclick="showPage('indexes')">Indexes</button>
+    </div>
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="page active" id="page-dashboard">
+        <div class="health-section">
+            <div class="gauge-container">
+                <div class="gauge-bg"></div>
+                <div class="gauge-fill" style="--score: {{ report.health_score }}"></div>
+                <div class="gauge-label">
+                    <div class="gauge-score">{{ report.health_score }}</div>
+                    <div class="gauge-max">/100</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <div class="card-value">{{ report.schema_overview.get('tables', report.tables|length) }}</div>
+                <div class="card-label">Tables</div>
+            </div>
+            <div class="card">
+                <div class="card-value">{{ report.schema_overview.get('views', report.views|length) }}</div>
+                <div class="card-label">Views</div>
+            </div>
+            <div class="card">
+                <div class="card-value">{{ report.schema_overview.get('stored_procedures', report.stored_procedures|length) }}</div>
+                <div class="card-label">Stored Procedures</div>
+            </div>
+            <div class="card">
+                <div class="card-value">{{ report.schema_overview.get('indexes', report.indexes|length) }}</div>
+                <div class="card-label">Indexes</div>
+            </div>
+            <div class="card">
+                <div class="card-value">{{ report.schema_overview.get('foreign_keys', report.relationships|length) }}</div>
+                <div class="card-label">Foreign Keys</div>
+            </div>
+            <div class="card">
+                <div class="card-value">{{ report.schema_overview.get('total_columns', 0) }}</div>
+                <div class="card-label">Total Columns</div>
+            </div>
+            <div class="card">
+                <div class="card-value">{{ report.schema_overview.get('total_rows', 0)|row_count }}</div>
+                <div class="card-label">Total Rows</div>
+            </div>
+            <div class="card">
+                <div class="card-value">{{ report.issues|length }}</div>
+                <div class="card-label">Issues Found</div>
+            </div>
+        </div>
+
+        {% if report.issues %}
+        <h2 class="section-title">Issues Summary</h2>
+        <table class="data-table">
+            <thead>
+                <tr><th>Issue</th><th>Severity</th><th class="num">Count</th><th class="num">Penalty</th></tr>
+            </thead>
+            <tbody>
+                {% for issue in report.issues %}
+                <tr>
+                    <td>{{ issue.description }}</td>
+                    <td><span class="badge badge-{{ issue.severity|lower }}">{{ issue.severity }}</span></td>
+                    <td class="num">{{ issue.count }}</td>
+                    <td class="num">-{{ issue.penalty }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if report.dependencies.hotspots is defined and report.dependencies.hotspots %}
+        <h2 class="section-title">Dependency Hotspots</h2>
+        <table class="data-table">
+            <thead>
+                <tr><th>Table</th><th class="num">Dependent SPs</th><th>Risk Level</th></tr>
+            </thead>
+            <tbody>
+                {% for hs in report.dependencies.hotspots[:10] %}
+                <tr>
+                    <td>{{ hs.table }}</td>
+                    <td class="num">{{ hs.dependent_sp_count }}</td>
+                    <td><span class="badge badge-{{ hs.risk_level|lower }}">{{ hs.risk_level }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <!-- ═══ SCHEMA BROWSER ═══ -->
+    <div class="page" id="page-schema">
+        <h2 class="section-title">Schema Browser</h2>
+        <input type="text" class="search-box" placeholder="Search tables..." oninput="filterTables(this.value)">
+
+        <div id="table-tree">
+            {% for table in report.tables %}
+            <div class="tree-item" data-name="{{ table.TABLE_NAME|lower }}">
+                <div class="tree-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div>
+                        <span class="tree-chevron">&#9654;</span>
+                        <span class="name">{{ table.TABLE_SCHEMA }}.{{ table.TABLE_NAME }}</span>
+                    </div>
+                    <div class="meta-info">
+                        {{ table.column_count }} cols &middot;
+                        {{ table.row_count|row_count }} rows
+                        {% if not table.has_primary_key %}&middot; <span style="color:var(--red)">No PK</span>{% endif %}
+                    </div>
+                </div>
+                <div class="tree-body">
+                    <table class="data-table" style="margin:0.5rem 0">
+                        <thead>
+                            <tr><th>Column</th><th>Type</th><th>Nullable</th><th>PK</th><th>Default</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for col in table.columns %}
+                            <tr>
+                                <td>{{ col.COLUMN_NAME }}</td>
+                                <td>{{ col.DATA_TYPE }}{% if col.CHARACTER_MAXIMUM_LENGTH %}({{ col.CHARACTER_MAXIMUM_LENGTH }}){% endif %}</td>
+                                <td>{{ col.IS_NULLABLE }}</td>
+                                <td>{% if col.is_primary_key %}&#9679;{% endif %}</td>
+                                <td style="color:var(--text-muted)">{{ col.COLUMN_DEFAULT or '' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ═══ DEPENDENCY GRAPH ═══ -->
+    <div class="page" id="page-graph">
+        <h2 class="section-title">Interactive Dependency Graph</h2>
+        <div class="graph-controls">
+            <select onchange="filterGraph(this.value)">
+                <option value="all">All Objects</option>
+                <option value="table">Tables Only</option>
+                <option value="procedure">Procedures Only</option>
+                <option value="view">Views Only</option>
+            </select>
+            <button onclick="resetZoom()">Reset Zoom</button>
+        </div>
+        <div id="graph-container"></div>
+        <div id="node-detail" style="margin-top:1rem;padding:1rem;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);min-height:60px;color:var(--text-secondary)">
+            Click a node to see details
+        </div>
+        <div class="graph-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Table</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div>Stored Procedure</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div>View</div>
+            <div class="legend-item"><span style="border-bottom:2px solid #3b82f6;width:20px;display:inline-block"></span>&nbsp;Foreign Key</div>
+            <div class="legend-item"><span style="border-bottom:2px dashed #475569;width:20px;display:inline-block"></span>&nbsp;SP Call</div>
+        </div>
+    </div>
+
+    <!-- ═══ ISSUES ═══ -->
+    <div class="page" id="page-issues">
+        <h2 class="section-title">All Issues</h2>
+        <div class="graph-controls">
+            <select onchange="filterIssues(this.value)">
+                <option value="all">All Severities</option>
+                <option value="high">HIGH</option>
+                <option value="medium">MEDIUM</option>
+                <option value="low">LOW</option>
+            </select>
+        </div>
+        <table class="data-table" id="issues-table">
+            <thead>
+                <tr><th>Issue</th><th>Severity</th><th class="num">Count</th><th>Category</th></tr>
+            </thead>
+            <tbody>
+                {% for issue in report.issues %}
+                <tr data-severity="{{ issue.severity|lower }}">
+                    <td>{{ issue.description }}</td>
+                    <td><span class="badge badge-{{ issue.severity|lower }}">{{ issue.severity }}</span></td>
+                    <td class="num">{{ issue.count }}</td>
+                    <td>{{ issue.category }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if report.dead_tables %}
+        <h2 class="section-title">Unreferenced Tables</h2>
+        <table class="data-table">
+            <thead><tr><th>Schema</th><th>Table</th><th class="num">Rows</th></tr></thead>
+            <tbody>
+                {% for t in report.dead_tables %}
+                <tr><td>{{ t.TABLE_SCHEMA }}</td><td>{{ t.TABLE_NAME }}</td><td class="num">{{ t.row_count|row_count }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if report.dead_procedures %}
+        <h2 class="section-title">Unused Stored Procedures ({{ report.dead_procedures|length }})</h2>
+        <table class="data-table">
+            <thead><tr><th>Schema</th><th>Procedure</th></tr></thead>
+            <tbody>
+                {% for sp in report.dead_procedures %}
+                <tr><td>{{ sp.ROUTINE_SCHEMA }}</td><td>{{ sp.ROUTINE_NAME }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <!-- ═══ PROCEDURES ═══ -->
+    <div class="page" id="page-procedures">
+        <h2 class="section-title">Stored Procedure Analysis</h2>
+
+        {% if report.sp_analysis %}
+        <h3 style="margin:1rem 0 0.5rem;color:var(--text-secondary)">Complexity Heatmap</h3>
+        <div class="heatmap">
+            {% for sp in report.sp_analysis %}
+            <div class="heatmap-cell" title="{{ sp.name }}: {{ sp.complexity_score }}"
+                 style="background: {% if sp.complexity_score >= 50 %}var(--red){% elif sp.complexity_score >= 20 %}var(--yellow){% else %}var(--green){% endif %}; opacity: {{ [0.3 + sp.complexity_score / 80, 1.0]|min }}"></div>
+            {% endfor %}
+        </div>
+
+        <h3 style="margin:1.5rem 0 0.5rem;color:var(--text-secondary)">Top Complex Procedures</h3>
+        <table class="data-table">
+            <thead>
+                <tr><th>Name</th><th class="num">Lines</th><th class="num">Joins</th><th class="num">Tables</th><th>Complexity</th><th class="num">Score</th><th>Anti-Patterns</th></tr>
+            </thead>
+            <tbody>
+                {% for sp in report.sp_analysis[:20] %}
+                <tr>
+                    <td>{{ sp.schema }}.{{ sp.name }}</td>
+                    <td class="num">{{ sp.line_count }}</td>
+                    <td class="num">{{ sp.join_count }}</td>
+                    <td class="num">{{ sp.referenced_tables|length }}</td>
+                    <td><span class="badge badge-{% if sp.complexity_category == 'Complex' %}high{% elif sp.complexity_category == 'Medium' %}medium{% else %}low{% endif %}">{{ sp.complexity_category }}</span></td>
+                    <td class="num">{{ sp.complexity_score }}</td>
+                    <td style="font-size:0.75rem;color:var(--text-muted)">{{ sp.anti_patterns|join(', ') if sp.anti_patterns else '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <!-- ═══ INDEXES ═══ -->
+    <div class="page" id="page-indexes">
+        <h2 class="section-title">Index Analysis</h2>
+
+        {% if report.missing_indexes %}
+        <h3 style="margin:1rem 0 0.5rem;color:var(--text-secondary)">Missing Indexes ({{ report.missing_indexes|length }})</h3>
+        <table class="data-table">
+            <thead>
+                <tr><th>Table</th><th>Columns</th><th class="num">Impact</th><th>SQL</th></tr>
+            </thead>
+            <tbody>
+                {% for idx in report.missing_indexes[:20] %}
+                <tr>
+                    <td>{{ idx.table_name }}</td>
+                    <td>{{ idx.equality_columns }}</td>
+                    <td class="num">{{ "%.0f"|format(idx.improvement_measure) }}</td>
+                    <td><div class="code-block">{{ idx.create_sql }}</div></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if report.unused_indexes %}
+        <h3 style="margin:1.5rem 0 0.5rem;color:var(--text-secondary)">Unused Indexes ({{ report.unused_indexes|length }})</h3>
+        <table class="data-table">
+            <thead>
+                <tr><th>Table</th><th>Index</th><th>Columns</th><th class="num">Writes</th><th>SQL</th></tr>
+            </thead>
+            <tbody>
+                {% for idx in report.unused_indexes[:20] %}
+                <tr>
+                    <td>{{ idx.table_name }}</td>
+                    <td>{{ idx.index_name }}</td>
+                    <td>{{ idx.columns }}</td>
+                    <td class="num">{{ idx.user_updates }}</td>
+                    <td><div class="code-block">{{ idx.drop_sql }}</div></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if report.duplicate_indexes %}
+        <h3 style="margin:1.5rem 0 0.5rem;color:var(--text-secondary)">Duplicate Indexes ({{ report.duplicate_indexes|length }})</h3>
+        <table class="data-table">
+            <thead>
+                <tr><th>Table</th><th>Index</th><th>Duplicate Of</th><th>Columns</th></tr>
+            </thead>
+            <tbody>
+                {% for idx in report.duplicate_indexes %}
+                <tr>
+                    <td>{{ idx.table_name }}</td>
+                    <td>{{ idx.index_name }}</td>
+                    <td>{{ idx.duplicate_of }}</td>
+                    <td>{{ idx.columns }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+{{ graph_js }}
+
+// Page navigation
+function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    event.target.classList.add('active');
+
+    // Initialize graph on first view
+    if (name === 'graph' && !window._graphInit) {
+        window._graphInit = true;
+        try {
+            var data = {{ graph_data|safe }};
+            initGraph('graph-container', data);
+        } catch(e) { console.error('Graph init error:', e); }
+    }
+}
+
+// Table search
+function filterTables(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.tree-item').forEach(item => {
+        const name = item.dataset.name || '';
+        item.style.display = name.includes(q) ? '' : 'none';
+    });
+}
+
+// Issue severity filter
+function filterIssues(severity) {
+    document.querySelectorAll('#issues-table tbody tr').forEach(row => {
+        if (severity === 'all') { row.style.display = ''; }
+        else { row.style.display = row.dataset.severity === severity ? '' : 'none'; }
+    });
+}
+</script>
+</body>
+</html>
