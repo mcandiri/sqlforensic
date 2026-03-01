@@ -253,6 +253,27 @@ diff = forensic.diff(target)
 print(f"Changes: {diff.total_changes}, Risk: {diff.risk_level}")
 ```
 
+## Real-World Results
+
+Tested against a live production database (SQL Server):
+
+| Metric | Value |
+|--------|-------|
+| Tables scanned | 499 |
+| Stored procedures analyzed | 1,851 |
+| Total columns | 5,995 |
+| Total rows | 6.4M |
+| Issues detected | 9 categories |
+| Scan time | < 3 minutes |
+
+Key findings from a single scan:
+- **183 tables** with no primary key
+- **363 missing foreign key indexes** causing slow JOINs
+- **1,726 stored procedures** with no internal DB references (potential dead code)
+- **165 tables** with no indexes at all
+- **4 circular dependencies** in the schema
+- Health Score: needs significant cleanup
+
 ## Supported Databases
 
 | Database | Version | Connector |
@@ -262,9 +283,7 @@ print(f"Changes: {diff.total_changes}, Risk: {diff.risk_level}")
 
 ## Born From Production
 
-> SQLForensic was built from years of experience managing databases powering enterprise
-> platforms with 500+ tables and thousands of stored procedures. Every analyzer addresses
-> a real pain point encountered in production database management.
+> Built to audit a 499-table education platform database that had grown organically over years. The first scan revealed 183 tables without primary keys and over 1,700 potentially unused stored procedures — problems that were invisible until SQLForensic mapped the entire dependency graph.
 
 ## Security
 
